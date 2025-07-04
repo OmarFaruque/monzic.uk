@@ -1,0 +1,213 @@
+# HWK3 
+
+## Schema/Format incompatibilities
+
+## tpep_pickup_datetime
+TIMESTAMP datatype for file3
+STRING datatype for both file 1 and 2
+
+## passenger_count
+STRING datatype for file1
+FLOAT datatype for both file2 and file3
+- For file1, we have to convert to FLOAT. 
+    SAFE_CAST(passenger_count AS FLOAT64) AS passenger_count
+
+
+
+## trip_distance_unit
+The unit is:
+km in file1
+ft in file2
+mi in file3
+
+## We have to Run a Group Query to Confirm the above. 
+SELECT trip_distance_unit, COUNT(*) 
+FROM `data-34200-1-mingweixie.hw3_dataset.(file1, file2, file3)`  
+GROUP BY trip_distance_unit;
+
+
+## Have  trip Distance in a Single Unit (mi)
+-  km to mi Conversion in table file1
+    trip_distance = trip_distance * 0.621371  
+  
+- ft to mi Conversion in table file2
+   trip_distance = trip_distance * 0.000189394  
+   
+
+## ## Timestamp conversion
+ - For file1 and file2. 
+    TIMESTAMP(tpep_pickup_datetime) AS tpep_pickup_datetime in filoe1 and file2
+    
+
+## Create The Merge Table using UNION
+
+
+CREATE OR REPLACE TABLE `data-34200-1-mingweixie.hw3_dataset.merged_table` AS 
+SELECT 
+    VendorID,
+    TIMESTAMP(tpep_pickup_datetime) AS tpep_pickup_datetime,  -- Convert STRING to TIMESTAMP
+    tpep_dropoff_datetime, 
+    SAFE_CAST(passenger_count AS FLOAT64) AS passenger_count,
+    trip_distance * 0.621371 AS trip_distance, 
+    RatecodeID,
+    store_and_fwd_flag,
+    PULocationID,
+    DOLocationID,
+    payment_type,
+    fare_amount,
+    extra,
+    mta_tax,
+    tip_amount,
+    tolls_amount,
+    improvement_surcharge,
+    total_amount,
+    congestion_surcharge,
+    Airport_fee
+FROM `data-34200-1-mingweixie.hw3_dataset.file1`
+
+UNION ALL
+
+SELECT 
+    VendorID,
+    TIMESTAMP(tpep_pickup_datetime) AS tpep_pickup_datetime,  -- Convert STRING to TIMESTAMP 
+    tpep_dropoff_datetime, 
+    passenger_count,
+    trip_distance * 0.000189394 AS trip_distance, 
+    RatecodeID,
+    store_and_fwd_flag,
+    PULocationID,
+    DOLocationID,
+    payment_type,
+    fare_amount,
+    extra,
+    mta_tax,
+    tip_amount,
+    tolls_amount,
+    improvement_surcharge,
+    total_amount,
+    congestion_surcharge,
+    Airport_fee
+FROM `data-34200-1-mingweixie.hw3_dataset.file2`
+
+UNION ALL
+
+SELECT 
+    VendorID,
+    tpep_pickup_datetime, 
+    tpep_dropoff_datetime, 
+    passenger_count,
+    trip_distance, 
+    RatecodeID,
+    store_and_fwd_flag,
+    PULocationID,
+    DOLocationID,
+    payment_type,
+    fare_amount,
+    extra,
+    mta_tax,
+    tip_amount,
+    tolls_amount,
+    improvement_surcharge,
+    total_amount,
+    congestion_surcharge,
+    Airport_fee
+FROM `data-34200-1-mingweixie.hw3_dataset.file3`;
+
+This statement created a new table named merged_table.
+
+## Check for Null Value in concerned columns.
+
+- tip_amount : There is no null
+- tpep_pickup_datetime : There is no null
+- tpep_dropoff_datetime : There is no null
+
+- SELECT COUNT(*) FROM `data-34200-1-mingweixie.hw3_dataset.merged_table` 
+ WHERE passenger_count IS NULL:  982487 records
+
+- SELECT COUNT(*) FROM `data-34200-1-mingweixie.hw3_dataset.merged_table` 
+ WHERE trip_distance IS NULL:  528651 records
+
+
+
+##  Recreate the merged_table  and replace null for passenger_count and trip_distance
+using:
+    ML.IMPUTER(passenger_count, 'mean') OVER () AS passenger_count;
+    ML.IMPUTER(trip_distance, 'mean') OVER () AS trip_distance;
+
+### In this case we use MEAN as the strategy.
+
+CREATE OR REPLACE TABLE `data-34200-1-mingweixie.hw3_dataset.merged_table` AS
+SELECT 
+    VendorID,
+    tpep_pickup_datetime, 
+    tpep_dropoff_datetime, 
+    ML.IMPUTER(passenger_count, 'mean') OVER () AS passenger_count,
+    ML.IMPUTER(trip_distance, 'mean') OVER () AS trip_distance, 
+    RatecodeID,
+    store_and_fwd_flag,
+    PULocationID,
+    DOLocationID,
+    payment_type,
+    fare_amount,
+    extra,
+    mta_tax,
+    tip_amount,
+    tolls_amount,
+    improvement_surcharge,
+    total_amount,
+    congestion_surcharge,
+    Airport_fee
+FROM `data-34200-1-mingweixie.hw3_dataset.merged_table`;
+
+This statement replaced the table named merged_table.
+
+
+
+## Queries:
+
+### 1. Average Passenger Count on Taxi Rides that Began Between 8am and 9am
+
+    SELECT AVG(passenger_count) 
+    FROM `data-34200-1-mingweixie.hw3_dataset.merged_table`
+    WHERE EXTRACT(HOUR FROM TIMESTAMP(tpep_pickup_datetime)) = 8
+    AND passenger_count > 0;
+    NOTE: This initily gave NaN because some passenger_count are 0. So we have to add where passenger_count > 0
+
+     => 1.2980583606483
+
+
+### 2.  VendorID,  the total trip distance traveled by taxis of that vendor on rides that ended between 10 and 11pm
+
+    SELECT VendorID, SUM(trip_distance) AS total_trip_distance
+    FROM `data-34200-1-mingweixie.hw3_dataset.merged_table`
+    WHERE EXTRACT(HOUR FROM tpep_dropoff_datetime) = 22
+    GROUP BY VendorID;
+
+Row	
+VendorID
+total_trip_distance
+1	
+6
+781.68000452518265
+2	
+1
+1483487.3846686422
+3	
+2
+5791965.4146158891
+
+
+
+### 3.  The average amount tipped on taxi rides that travelled more than 1 mile and had exactly 1 Passenger
+
+    SELECT AVG(tip_amount) AS avg_tip_amount
+    FROM `data-34200-1-mingweixie.hw3_dataset.merged_table`
+    WHERE trip_distance > 1 AND passenger_count = 1;
+    =>  4.0336925920272
+
+
+
+
+
+
+

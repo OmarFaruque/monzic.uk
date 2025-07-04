@@ -1,0 +1,188 @@
+
+## tpep_pickup_datetime
+TIMESTAMP datatype for file3
+STRING datatype for both file 1 and 2
+
+## passenger_count
+STRING datatype for file1
+FLOAT datatype for both file2 and file3
+
+
+## trip_distance_unit
+The unit is:
+km in file1
+ft in file2
+mi in file3
+
+## We have to Run a Group Query to Confirm the above. 
+SELECT trip_distance_unit, COUNT(*) 
+FROM `data-34200-1-mingweixie.hw3_dataset.(file1, file2, file3)`  
+GROUP BY trip_distance_unit;
+
+
+## Have  trip Distance in a Single Unit (mi)
+- Do km to mi Conversion in table file1
+  
+  UPDATE `data-34200-1-mingweixie.hw3_dataset.file1`  
+    SET trip_distance = trip_distance * 0.621371  
+    WHERE trip_distance IS NOT NULL;
+
+    This statement modified 11,571,603 rows in file1
+
+
+- Do ft to mi Conversion in table file1
+  
+  UPDATE `data-34200-1-mingweixie.hw3_dataset.file2`  
+    SET trip_distance = trip_distance * 0.000189394  
+    WHERE trip_distance IS NOT NULL;
+
+    This statement modified 11,571,603 rows in file2.
+
+- Convert unit to mile in Both file1 and file2
+    UPDATE `data-34200-1-mingweixie.hw3_dataset.file1`  
+    SET trip_distance_unit = 'mi'  
+    WHERE TRUE;
+
+    UPDATE `data-34200-1-mingweixie.hw3_dataset.file2`  
+    SET trip_distance_unit = 'mi'  
+    WHERE TRUE;
+
+
+## Passenger Count
+  ### Let's add a new column  passenger_count_int
+  ALTER TABLE `data-34200-1-mingweixie.hw3_dataset.file1`  
+    ADD COLUMN passenger_count_int INT64;
+  ALTER TABLE `data-34200-1-mingweixie.hw3_dataset.file2`  
+    ADD COLUMN passenger_count_int INT64;
+  ALTER TABLE `data-34200-1-mingweixie.hw3_dataset.file2`  
+    ADD COLUMN passenger_count_int INT64;
+
+
+ - For file1, passwenger_count is a STRING. We have to cast to INT. 
+    UPDATE `data-34200-1-mingweixie.hw3_dataset.file1`
+    SET passenger_count_int = SAFE_CAST(SAFE_CAST(passenger_count AS FLOAT64) AS INT64)
+    WHERE TRUE;
+
+
+ - For file2, passwenger_count is a FLOAT. We have to cast to INT. 
+    UPDATE `data-34200-1-mingweixie.hw3_dataset.file2`  
+    SET passenger_count_int = SAFE_CAST(passenger_count AS INT64)  
+    WHERE TRUE;
+
+-  For file3, passwenger_count is a FLOAT. We have to cast to INT. 
+    UPDATE `data-34200-1-mingweixie.hw3_dataset.file3`  
+    SET passenger_count_int = SAFE_CAST(passenger_count AS INT64)  
+    WHERE TRUE;
+
+
+
+
+
+## Create The Merge Table using UNION
+### We also do type conversion for tpep_pickup_datetime
+
+
+CREATE OR REPLACE TABLE `data-34200-1-mingweixie.hw3_dataset.merged_table` AS 
+SELECT 
+    VendorID,
+    TIMESTAMP(tpep_pickup_datetime) AS tpep_pickup_datetime,  -- Convert STRING to TIMESTAMP
+    tpep_dropoff_datetime, 
+    SAFE_CAST(passenger_count AS FLOAT64) AS passenger_count,
+    trip_distance * 0.621371 AS trip_distance, 
+    RatecodeID,
+    store_and_fwd_flag,
+    PULocationID,
+    DOLocationID,
+    payment_type,
+    fare_amount,
+    extra,
+    mta_tax,
+    tip_amount,
+    tolls_amount,
+    improvement_surcharge,
+    total_amount,
+    congestion_surcharge,
+    Airport_fee
+FROM `data-34200-1-mingweixie.hw3_dataset.file1`
+
+UNION ALL
+
+SELECT 
+    VendorID,
+    TIMESTAMP(tpep_pickup_datetime) AS tpep_pickup_datetime,  -- Convert STRING to TIMESTAMP 
+    tpep_dropoff_datetime, 
+    passenger_count,
+    trip_distance * 0.000189394 AS trip_distance, 
+    RatecodeID,
+    store_and_fwd_flag,
+    PULocationID,
+    DOLocationID,
+    payment_type,
+    fare_amount,
+    extra,
+    mta_tax,
+    tip_amount,
+    tolls_amount,
+    improvement_surcharge,
+    total_amount,
+    congestion_surcharge,
+    Airport_fee
+FROM `data-34200-1-mingweixie.hw3_dataset.file2`
+
+UNION ALL
+
+SELECT 
+    VendorID,
+    tpep_pickup_datetime, 
+    tpep_dropoff_datetime, 
+    passenger_count,
+    trip_distance, 
+    RatecodeID,
+    store_and_fwd_flag,
+    PULocationID,
+    DOLocationID,
+    payment_type,
+    fare_amount,
+    extra,
+    mta_tax,
+    tip_amount,
+    tolls_amount,
+    improvement_surcharge,
+    total_amount,
+    congestion_surcharge,
+    Airport_fee
+FROM `data-34200-1-mingweixie.hw3_dataset.file3`;
+
+
+This statement created a new table named merged_table.
+
+
+tip_amount
+tpep_pickup_datetime
+tpep_dropoff_datetime
+
+
+ SELECT COUNT(*) FROM `data-34200-1-mingweixie.hw3_dataset.file2` WHERE passenger_count_int IS NULL;
+
+ 11747820
+ 374655
+ 607832
+
+UPDATE `data-34200-1-mingweixie.hw3_dataset.merged_table` 
+SET passenger_count = (    
+    SELECT ML.IMPUTER(passenger_count, 'median') OVER () AS passenger_count
+    FROM
+    `data-34200-1-mingweixie.hw3_dataset.merged_table`;
+)
+WHERE passenger_count IS NULL;
+
+
+
+   SELECT ML.IMPUTER(trip_distance, 'mean') OVER () AS trip_distance
+
+
+
+
+SELECT AVG(ML.IMPUTER(passenger_count, 'median') OVER ()) AS avg_passenger_count
+FROM `data-34200-1-mingweixie.hw3_dataset.merged_table`
+WHERE EXTRACT(HOUR FROM TIMESTAMP(tpep_pickup_datetime)) = 8;

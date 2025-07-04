@@ -1,0 +1,180 @@
+.elementor-1306 .elementor-element.elementor-element-5b3eada{margin-top:77px;margin-bottom:0px;padding:0px 0px 0px 0px;z-index:0;}.elementor-1306 .elementor-element.elementor-element-2e88fe6 .elementor-button-content-wrapper{flex-direction:row;}.elementor-1306 .elementor-element.elementor-element-2e88fe6 .elementor-button .elementor-button-content-wrapper{gap:10px;}.elementor-1306 .elementor-element.elementor-element-2e88fe6{width:100%;max-width:100%;align-self:center;}.elementor-1306 .elementor-element.elementor-element-6a1849c .elementor-button-content-wrapper{flex-direction:row;}.elementor-1306 .elementor-element.elementor-element-6a1849c .elementor-button .elementor-button-content-wrapper{gap:10px;}.elementor-1306 .elementor-element.elementor-element-6a1849c{width:100%;max-width:100%;align-self:center;}.elementor-1306 .elementor-element.elementor-element-e55ad50 .elementor-button-content-wrapper{flex-direction:row;}.elementor-1306 .elementor-element.elementor-element-e55ad50 .elementor-button .elementor-button-content-wrapper{gap:10px;}.elementor-1306 .elementor-element.elementor-element-e55ad50{width:100%;max-width:100%;align-self:center;}.elementor-1306 .elementor-element.elementor-element-2fd6917c > .elementor-container > .elementor-column > .elementor-widget-wrap{align-content:center;align-items:center;}.elementor-1306 .elementor-element.elementor-element-2fd6917c{margin-top:20px;margin-bottom:20px;}.elementor-1306 .elementor-element.elementor-element-ba34c8c{--tab-content-spacing:7px;--tabs-alignment:start;--tabs-normal-color:#FFFFFF;}.elementor-1306 .elementor-element.elementor-element-72ee0d77{text-align:left;}.elementor-1306 .elementor-element.elementor-element-72ee0d77 > .elementor-widget-container{padding:0px 0px 0px 0px;}@media(max-width:1024px){.elementor-1306 .elementor-element.elementor-element-5b3eada{margin-top:0px;margin-bottom:20px;}}@media(max-width:767px){.elementor-1306 .elementor-element.elementor-element-5b3eada{margin-top:0px;margin-bottom:20px;}.elementor-1306 .elementor-element.elementor-element-8d5a021 > .elementor-widget-wrap > .elementor-widget:not(.elementor-widget__width-auto):not(.elementor-widget__width-initial):not(:last-child):not(.elementor-absolute){margin-bottom:45px;}.elementor-1306 .elementor-element.elementor-element-2e88fe6{width:var( --container-widget-width, 1000px );max-width:1000px;--container-widget-width:1000px;--container-widget-flex-grow:0;}.elementor-1306 .elementor-element.elementor-element-6a1849c > .elementor-widget-container{margin:0px 0px 0px 0px;}}/* Start custom CSS for button, class: .elementor-element-2e88fe6 */..elementor-1306 .elementor-element.elementor-element-2e88fe6
+{width:100%;}/* End custom CSS */
+/* Start custom CSS for section, class: .elementor-element-5b3eada */.elementor-1306 .elementor-element.elementor-element-5b3eada {
+    border: 2px solid var(--gtheme-color); /* Modern color border */
+    padding: 20px; /* Inner spacing */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(50, 140, 156, 0.1); /* Subtle shadow with a tint of the color */
+    background-color: var(--gtheme-color-box); /* Light background color tint */
+    color: #000; /* Black text color */
+    font-size: 18px; /* Text size */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.elementor-1306 .elementor-element.elementor-element-5b3eada:hover {
+    transform: translateY(-5px); /* Slight lift on hover */
+    box-shadow: 0 6px 12px rgba(50, 140, 156, 0.15); /* Enhanced shadow on hover with a tint of the color */
+}
+
+
+element.style {
+}
+.elementor-1306 .elementor-element.elementor-element-5b3eada {
+    border: 2px solid var(--gtheme-color);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(50, 140, 156, 0.1);
+    background-color: var(--gtheme-color-box);
+    color: #000;
+    font-size: 18px;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}/* End custom CSS */
+/* Start custom CSS for woocommerce-my-account, class: .elementor-element-ba34c8c */.elementor-widget-woocommerce-my-account .e-my-account-tab .woocommerce .woocommerce-MyAccount-navigation ul {
+    -webkit-padding-start: 0;
+    padding-inline-start: 0;
+    display: none;
+}/* End custom CSS */
+/* Start custom CSS for text-editor, class: .elementor-element-72ee0d77 *//* Style the input fields with Roboto font at 16px */
+input[type="text"],
+input[type="email"] {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  color: #333;
+  background-color: #f4f4f4;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Style the placeholder text */
+input[type="text"]::placeholder,
+input[type="email"]::placeholder {
+  color: #999;
+}
+
+/* Style the input fields on focus */
+input[type="text"]:focus,
+input[type="email"]:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.gens-raf-message, .gens-raf-mail-share {
+    display: block !important;
+    position: relative !important;
+    background-color: var(--gtheme-color);
+    color: #ffffff;
+    padding: 20px 90px 20px 20px !important;
+    margin-bottom: 25px;
+    border-left: 10px solid rgba(0, 0, 0, 0.15);
+}
+
+
+element.style {
+}
+.gens-raf-message .gens-ctc {
+    position: absolute;
+    right: 15px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #ffffff;
+    cursor: pointer;
+}/* End custom CSS */
+/* Start custom CSS for section, class: .elementor-element-2fd6917c */.woocommerce-account .woocommerce-MyAccount-navigation {
+    float: left;
+    width: 30%;
+    display: none;
+}
+
+.elementor-1306 .elementor-element.elementor-element-2fd6917c {
+    border: 2px solid var(--gtheme-color); /* Modern color border */
+    padding: 20px; /* Inner spacing */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(50, 140, 156, 0.1); /* Subtle shadow with a tint of the color */
+    background-color: var(--gtheme-color-box); /* Light background color tint */
+    color: #000; /* Black text color */
+    font-size: 18px; /* Text size */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.elementor-1306 .elementor-element.elementor-element-2fd6917c:hover {
+    transform: translateY(-5px); /* Slight lift on hover */
+    box-shadow: 0 6px 12px rgba(50, 140, 156, 0.15); /* Enhanced shadow on hover with a tint of the color */
+}
+
+.gens-referral_share__email input[type='submit'] {
+    background: #1f7278 !important;
+}
+
+.woocommerce-info {
+    border-top-color: #5c8592;
+}
+
+.elementor-widget-woocommerce-my-account .e-my-account-tab:not(.e-my-account-tab__dashboard--custom) .woocommerce a {
+    color: #5c8592;
+}
+
+input[type="submit"][value="Send Emails"] {
+    font-family: 'Roboto', sans-serif; /* Use Roboto font or fallback sans-serif */
+    /* You can further customize the font with additional CSS properties here */
+}
+
+.elementor-widget-woocommerce-my-account .e-my-account-tab:not(.e-my-account-tab__dashboard--custom) .woocommerce a {
+    color: var(--gtheme-color);
+}
+
+.elementor-widget-woocommerce-my-account .e-my-account-tab:not(.e-my-account-tab__dashboard--custom) .woocommerce .login .button,
+.elementor-widget-woocommerce-my-account .e-my-account-tab:not(.e-my-account-tab__dashboard--custom) .woocommerce .register .button,
+.elementor-widget-woocommerce-my-account .e-my-account-tab:not(.e-my-account-tab__dashboard--custom) .woocommerce .woocommerce-ResetPassword .button {
+    background: var(--gtheme-color);
+    border: none;
+    color: #fff;
+    border-radius: 3px;
+    padding: 12px 32px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.elementor-widget-woocommerce-my-account .e-my-account-tab:not(.e-my-account-tab__dashboard--custom) .woocommerce .login .button,
+.elementor-widget-woocommerce-my-account .e-my-account-tab:not(.e-my-account-tab__dashboard--custom) .woocommerce .register .button,
+.elementor-widget-woocommerce-my-account .e-my-account-tab:not(.e-my-account-tab__dashboard--custom) .woocommerce .woocommerce-ResetPassword .button {
+    background: var(--gtheme-color) !important;
+    border: none;
+    color: var(--forms-buttons-normal-text-color,#fff);
+    border-radius: var(--forms-buttons-border-radius,3px);
+    padding: var(--forms-buttons-padding,5px 18px);
+    font-size: 15px;
+}
+
+/* Apply styles to the specific element with class elementor-element-72ee0d77 */
+.elementor-element-72ee0d77 {
+    border: 2px solid var(--gtheme-color); /* Modern color border */
+    padding: 20px; /* Inner spacing */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(50, 140, 156, 0.1); /* Subtle shadow with a tint of the color */
+    background-color: var(--gtheme-color-box); /* Light background color tint */
+    color: #000; /* Black text color */
+    font-size: 18px; /* Text size */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        margin-top:20px;
+    margin-left:10px;
+    margin-right:10px;
+
+}
+
+/* Add hover effect to the specific element */
+.elementor-element-72ee0d77:hover {
+    transform: translateY(-5px); /* Slight lift on hover */
+    box-shadow: 0 6px 12px rgba(50, 140, 156, 0.15); /* Enhanced shadow on hover with a tint of the color */
+    margin-top:20px;
+    margin-left:10px;
+    margin-right:10px;
+}
+
+
+body:not(.logged-in) .elementor-element[data-id="72ee0d77"] {display: none;}/* End custom CSS */

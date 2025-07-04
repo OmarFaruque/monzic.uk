@@ -1,0 +1,15 @@
+.elementor-85263458 .elementor-element.elementor-element-5273aa6b:not(.elementor-motion-effects-element-type-background), .elementor-85263458 .elementor-element.elementor-element-5273aa6b > .elementor-motion-effects-container > .elementor-motion-effects-layer{background-color:#FFFFFF;}.elementor-85263458 .elementor-element.elementor-element-5273aa6b{transition:background 0.3s, border 0.3s, border-radius 0.3s, box-shadow 0.3s;}.elementor-85263458 .elementor-element.elementor-element-5273aa6b > .elementor-background-overlay{transition:background 0.3s, border-radius 0.3s, opacity 0.3s;}.elementor-85263458 .elementor-element.elementor-element-63020312 .elementor-button{background-color:#216F7C;}@media(max-width:767px){.elementor-85263458 .elementor-element.elementor-element-6098b231{width:100%;}}/* Start custom CSS for text-editor, class: .elementor-element-0d898cb */.elementor-85263458 .elementor-element.elementor-element-0d898cb {
+    border: 2px solid var(--gtheme-color); /* Modern color border */
+    padding: 20px; /* Inner spacing */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(50, 140, 156, 0.1); /* Subtle shadow with a tint of the color */
+    background-color: var(--gtheme-color-box); /* Light background color tint */
+    color: #000; /* Black text color */
+    font-size: 18px; /* Text size */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.elementor-85263458 .elementor-element.elementor-element-0d898cb:hover {
+    transform: translateY(-5px); /* Slight lift on hover */
+    box-shadow: 0 6px 12px rgba(50, 140, 156, 0.15); /* Enhanced shadow on hover with a tint of the color */
+}/* End custom CSS */

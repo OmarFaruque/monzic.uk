@@ -1,0 +1,35 @@
+.elementor-kit-6{--e-global-color-primary:var(--gtheme-color);--e-global-color-secondary:#54595F;--e-global-color-text:#000000;--e-global-color-accent:var(--gtheme-color-dark);--e-global-typography-primary-font-family:"Cabin";--e-global-typography-primary-font-weight:600;--e-global-typography-secondary-font-family:"Cabin";--e-global-typography-secondary-font-weight:400;--e-global-typography-text-font-family:"Lato";--e-global-typography-text-font-weight:400;--e-global-typography-accent-font-family:"Cabin";--e-global-typography-accent-font-weight:500;}.elementor-kit-6 h2{font-size:2.2em;font-weight:600;}.elementor-kit-6 button,.elementor-kit-6 input[type="button"],.elementor-kit-6 input[type="submit"],.elementor-kit-6 .elementor-button{border-radius:6px 6px 6px 6px;}.elementor-section.elementor-section-boxed > .elementor-container{max-width:1140px;}.e-con{--container-max-width:1140px;}.elementor-widget:not(:last-child){margin-block-end:20px;}.elementor-element{--widgets-spacing:20px 20px;}{}h1.entry-title{display:var(--page-title-display);}.elementor-kit-6 e-page-transition{background-color:#FFBC7D;}@media(max-width:1024px){.elementor-section.elementor-section-boxed > .elementor-container{max-width:1024px;}.e-con{--container-max-width:1024px;}}@media(max-width:767px){.elementor-section.elementor-section-boxed > .elementor-container{max-width:767px;}.e-con{--container-max-width:767px;}}/* Start custom CSS *//* Apply styles to the elementor container */
+.elementor-1669 {
+    border: 2px solid var(--gtheme-color);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(50, 140, 156, 0.1);
+    background-color: var(--gtheme-color-box);
+    color: #000;
+    font-size: 18px;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Add hover effect to the elementor container */
+.elementor-1669:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(50, 140, 156, 0.15);
+}
+
+.elementor-85263388 .elementor-element.elementor-element-d3af341 .metform-btn {
+    padding: 17px 28px 16px 28px;
+    font-family: "Roboto", Sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 11px;
+    color: #FFFFFF;
+    background-color: var(--gtheme-color);
+    border-style: none;
+    border-radius: 8px 8px 8px 8px;
+    box-shadow: 0px 0px 0px 0px rgba(0,0,0,0.5);
+}
+
+
+  .title-bar.col-sm-12 {
+    display: none;
+  }/* End custom CSS */

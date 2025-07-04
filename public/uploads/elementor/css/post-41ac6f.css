@@ -1,0 +1,15 @@
+.elementor-41 .elementor-element.elementor-element-a790f6c{font-family:"Lato", Sans-serif;font-weight:400;line-height:1.4;}.elementor-41 .elementor-element.elementor-element-a790f6c > .elementor-widget-container{margin:-20px 0px -20px 0px;}@media(max-width:767px){.elementor-41 .elementor-element.elementor-element-44b1316 > .elementor-element-populated{margin:0em 0em 2em 0em;--e-column-margin-right:0em;--e-column-margin-left:0em;}}/* Start custom CSS for text-editor, class: .elementor-element-a790f6c */.elementor-41 .elementor-element.elementor-element-a790f6c {
+    border: 2px solid var(--gtheme-color); /* Modern color border */
+    padding: 20px; /* Inner spacing */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(50, 140, 156, 0.1); /* Subtle shadow with a tint of the color */
+    background-color: var(--gtheme-color-box); /* Light background color tint */
+    color: #000; /* Black text color */
+    font-size: 18px; /* Text size */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.elementor-41 .elementor-element.elementor-element-a790f6c:hover {
+    transform: translateY(-5px); /* Slight lift on hover */
+    box-shadow: 0 6px 12px rgba(50, 140, 156, 0.15); /* Enhanced shadow on hover with a tint of the color */
+}/* End custom CSS */
