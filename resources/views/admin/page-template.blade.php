@@ -52,6 +52,9 @@
                     <a class="nav-link" id="website-tab" data-toggle="tab" href="#website" role="tab">Website Terms of
                         Use</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="ai-email-tab" data-toggle="tab" href="#ai-email" role="tab">AI Document Confirmation</a>
+                </li>
             </ul>
 
             <div class="tab-content mt-3" id="myTabContent">
@@ -82,6 +85,42 @@
                         </div>
                     </div>
                 </div>
+
+
+
+
+
+
+                {{-- AI document email template --}}
+
+                @php
+                    $defaultTemplate = '
+                        <p>Hi [username],</p>
+                        <p>Your AI-generated document is ready. You can download it using the link below:</p>
+                        <p>[document_link]</p>
+                        <p>Thanks,<br>The Team</p>
+                    ';
+                @endphp
+
+                <div class="tab-pane fade" id="ai-email" role="tabpanel">
+                    <div class="card" style="border: 5px solid #999; ">
+                        <div class="card-header"><div class="text-bold">AI Document Confirmation Email </div>
+                            <div class="small"><small>Param: [username], [document_link], [document_title], [created_at]</small></div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <form class="is_ckedit" autocomplete="off" onsubmit="updateSettings(event, 10)">
+                                <textarea name="page[ai_email]" class="form-control" required>
+                                    {!! !empty($page['ai_email']) ? $page['ai_email'] : $defaultTemplate !!}
+                                </textarea>
+                                <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
+                                        UPDATE</button></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- End ai document email template --}}
 
                 <div class="tab-pane fade" id="expr_email_con" role="tabpanel">
                     <div class="card" style="border: 5px solid #999; ">

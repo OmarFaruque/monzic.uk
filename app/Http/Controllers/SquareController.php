@@ -3,25 +3,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\OrderConfirmationMail;
-use App\Models\PromoCode;
-use App\Models\Quote;
-use App\Models\User;
-use App\Models\Setting;
 use Exception;
+use App\Models\User;
+use App\Models\Quote;
+use App\Models\Setting;
+use Square\Types\Money;
+use Square\Environments;
+use Square\SquareClient;
+use App\Models\PromoCode;
+use App\Models\AiDocument;
+
+
+use Square\Types\Currency;
 use Illuminate\Http\Request;
+use App\Mail\VerifyEmailMail;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Mail\AiDocumentReadyMail;
+use App\Mail\OrderConfirmationMail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
-
-use Square\Customers\Requests\CreateCustomerRequest;
-use Square\Customers\Requests\GetCustomersRequest;
-use Square\SquareClient;
-use Square\Types\Money;
-use Square\Types\Currency;
-use Square\Environments;
-use Square\Payments\Requests\CreatePaymentRequest;
-use Square\Exceptions\SquareApiException;
 
 
 
@@ -29,12 +30,16 @@ use Square\Exceptions\SquareApiException;
 
 
 use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifyEmailMail;
-use Illuminate\Support\Facades\RateLimiter;
-
-
-
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+
+
+
+use Square\Exceptions\SquareApiException;
+use Illuminate\Support\Facades\RateLimiter;
+use Square\Customers\Requests\GetCustomersRequest;
+use Square\Payments\Requests\CreatePaymentRequest;
+use Square\Customers\Requests\CreateCustomerRequest;
 
 class SquareController extends Controller
 {
@@ -130,9 +135,10 @@ class SquareController extends Controller
 
 
 
-
-
-    public function confirmPayment(Request $request)
+    /**
+     * Ai document confirmation
+     */
+    public function confirmAiPayment(Request $request)
     {
 
         $user = $request->user();
@@ -142,7 +148,7 @@ class SquareController extends Controller
         $validatedData = Validator::make(
             $request->all(),
             [
-                'id' => 'required|exists:quotes,id',
+                'id' => 'required|exists:ai_documents,id',
                 'token' => 'required|string',
             ]
         );
@@ -158,10 +164,13 @@ class SquareController extends Controller
 
         $paymentToken = $request->token;
 
-        $quote = Quote::where("id", $request->id)->first();
+        $aiDoc = AiDocument::where("id", $request->id)->first();
+
+
+
 
         // Just return if already done;
-        if ($quote->payment_status == 1) {
+        if ($aiDoc->status == 'paid') {
 
             return response()->json([
                 'status' => "success",
@@ -169,9 +178,15 @@ class SquareController extends Controller
 
 
         }
+        $amount = 0;
+        $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
+        if($aiPrice){
+            $amount = $aiPrice;
+            $amount = intval($amount * 100);
+        }
+        
 
 
-        $amount = intval($quote->update_price * 100);
 
 
         $squareAccess = Setting::where("param", "square_access_token")->first();
@@ -182,12 +197,16 @@ class SquareController extends Controller
         }
 
         $squareLoc = Setting::where("param", "square_loc_id")->first();
-        if ($squareAccess == null) {
+        if ($squareLoc == null) {
             $squareLocID = config('services.square.access_loc_id');
         } else {
             $squareLocID = $squareLoc->value;
         }
-        
+
+
+
+
+
 
         if (config('app.env') == "local") {
 
@@ -258,7 +277,275 @@ class SquareController extends Controller
         }
 
 
+        Log::info('Attempting Square Payment', [
+            'env' => config('app.env'),
+            'aiDocid' => $aiDoc->id,
+            'amount' => $amount,
+            'token' => $paymentToken,
+            'location_id' => $squareLocID,
+            'customer_id' => $customerId,
+        ]);
+        
 
+        $money = new Money();
+        $money->setAmount($amount);
+        $money->setCurrency(Currency::Gbp->value);
+
+        // Every payment you process with the SDK must have a unique idempotency key.
+        // If you're unsure whether a particular payment succeeded, you can reattempt
+        // it with the same idempotency key without worrying about double charging
+        // the buyer.
+        $create_payment_request = new CreatePaymentRequest(
+            [
+                'sourceId' => $paymentToken,
+                'idempotencyKey' => $aiDoc->uuid,
+                'amountMoney' => $money,
+                'locationId' => $squareLocID,
+                'customerId' => $customerId,
+                'buyerEmailAddress' => $user->email
+            ]
+        );
+
+        try {
+            $response = $square_client->payments->create($create_payment_request);
+        } catch (SquareApiException $e) {
+
+            $errors = $e->getErrors();
+
+            $errors = $e->getErrors();
+            $errorMessages = array_map(fn($err) => $err->getDetail() ?? $err->getCode(), $errors);
+            $errorString = implode(', ', $errorMessages);
+
+
+            return response()->json([
+                'success' => false,
+                // 'message' => 'Payment failed',
+                'message' => $errorString,
+                'status_code' => $e->getStatusCode()
+            ], 400);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Internal Server Error',
+            ], 500);
+        }
+
+        if ($response->getPayment()) {
+
+            $payment = $response->getPayment();
+            if ($payment->getStatus() == "COMPLETED") {
+
+
+                Log::info('aQueryPaymentSuccess', [
+                    'payment' => $payment
+                ]);
+                
+
+                $spayment_id = $payment->getId();
+
+                $aiDoc->status = 'paid';
+                $aiDoc->paddle_checkout_id = $spayment_id;
+                
+
+                // Generate PDF from content
+                $pdf = Pdf::loadView('ai-pdf-template', [
+                    'content' => $aiDoc->content,
+                    'title' => $aiDoc->prompt,
+                ]);
+
+                $pdfFileName = 'ai_doc_' . now()->timestamp . '.pdf';
+                $pdfPath = "ai-docs/{$pdfFileName}";
+
+                Storage::disk('public')->put($pdfPath, $pdf->output());
+
+                $aiDoc->pdf_path = $pdfPath;
+                $aiDoc->amount = $amount;
+            
+                // Save to DB
+                $aiDoc->save();
+
+
+                $emailTemplate = Setting::where('param', 'page[ai_email]')->value('value');
+
+                $placeholders = [
+                    '[username]'      => $aiDoc->user->name ?? 'Customer',
+                    '[document_link]' => asset('storage/' . $pdfPath),
+                    '[document_title]'=> $aiDoc->prompt,
+                    '[created_at]'    => $aiDoc->created_at->format('F j, Y'),
+                ];
+
+                $finalEmailBody = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate);
+                Mail::to($aiDoc->user->email)->send(new AiDocumentReadyMail($finalEmailBody));
+
+                return response()->json([
+                    'status' => "success",
+                ], 200);
+
+
+            } else {
+
+                return response()->json([
+                    'status' => "Payment not yet verified",
+                ], 400);
+            }
+
+
+        } else {
+
+            echo json_encode($response->getErrors());
+        }
+
+
+    }
+
+    
+
+
+    public function confirmPayment(Request $request)
+    {
+
+        $user = $request->user();
+
+
+        // Save imntent seoartedly
+        $validatedData = Validator::make(
+            $request->all(),
+            [
+                'id' => 'required|exists:quotes,id',
+                'token' => 'required|string',
+            ]
+        );
+        if ($validatedData->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => "Validation error",
+                'errors' => $validatedData->errors()
+            ], 400);
+        }
+
+
+
+        $paymentToken = $request->token;
+
+        $quote = Quote::where("id", $request->id)->first();
+
+
+
+
+        // Just return if already done;
+        if ($quote->payment_status == 1) {
+
+            return response()->json([
+                'status' => "success",
+            ]);
+
+
+        }
+
+
+        $amount = intval($quote->update_price * 100);
+
+
+
+
+        $squareAccess = Setting::where("param", "square_access_token")->first();
+        if ($squareAccess == null) {
+            $squareAccessToken = config('services.square.access_token');
+        } else {
+            $squareAccessToken = $squareAccess->value;
+        }
+
+        $squareLoc = Setting::where("param", "square_loc_id")->first();
+        if ($squareLoc == null) {
+            $squareLocID = config('services.square.access_loc_id');
+        } else {
+            $squareLocID = $squareLoc->value;
+        }
+
+
+
+
+
+
+        if (config('app.env') == "local") {
+
+            $square_client = new SquareClient(
+                $squareAccessToken,
+                null,
+                ['baseUrl' => Environments::Sandbox->value,]
+            );
+        } else {
+
+            $square_client = new SquareClient(
+                $squareAccessToken,
+                null,
+                ['baseUrl' => Environments::Production->value]
+            );
+
+        }
+
+
+
+        
+        // Check if the user already has a Square customer ID
+        if (! $user->square_customer_id) {
+            // Create a new customer in Square
+            
+            $customerObj = $square_client->customers->create(
+                new CreateCustomerRequest([
+                    'givenName' => $user->first_name,
+                    'familyName' => $user->last_name,
+                    'emailAddress' => $user->email,
+                ]),
+            );
+            $customer = $customerObj->getCustomer();
+            $customerId = $customer->getId();
+
+            $user->square_customer_id =  $customerId;
+            $user->save();
+
+
+        } else {
+            // Use the existing customer ID
+            $customerId = $user->square_customer_id;
+            // Verify if the customer still exists in Square
+            try {
+                
+                $customerObj = $square_client->customers->get(
+                    new GetCustomersRequest([
+                        'customerId' => $user->square_customer_id,
+                    ]),
+                );
+                $customer = $customerObj->getCustomer(); 
+        
+            } catch (\Exception $e) {
+                // Customer not found, recreate the customer
+                $customerObj = $square_client->customers->create(
+                    new CreateCustomerRequest([
+                        'givenName' => $user->first_name,
+                        'familyName' => $user->last_name,
+                        'emailAddress' => $user->email,
+                    ]),
+                );
+                $customer = $customerObj->getCustomer();
+                $customerId = $customer->getId();
+
+                $user->square_customer_id =  $customerId;
+                $user->save();
+            }
+        }
+
+
+        Log::info('Attempting Square Payment', [
+            'env' => config('app.env'),
+            'quote_id' => $quote->id,
+            'amount' => $amount,
+            'token' => $paymentToken,
+            'location_id' => $squareLocID,
+            'customer_id' => $customerId,
+        ]);
+        
 
         $money = new Money();
         $money->setAmount($amount);

@@ -229,38 +229,7 @@
 
 
 
-                <div class="col-12">
-                    <details class="my-3">
-                        <summary style="padding: 10px; font-size:20px; border:2px solid #999">Paddle Settings:</summary>
-                        <div class="row">
-                            <div class="col-12 col-md-12">
-                                <div class="card" style="border: 5px solid #999; ">
-                                    <div class="card-header text-bold ">Paddle Settings</div>
-                                    <div class="card-body">
-                                        <form class="is_ckedit" autocomplete="off" action="{{ route('update.OpenAPI') }}" method="POST">
-                                            @csrf
-                                            <div class="row gap-5 w-full w-100">
-                                                <div class="form-group col-md-6">
-                                                    <label for="paddle_vendor_id">Paddle Vendor ID</label>
-                                                    <input type="text" value="{{ old('paddle_vendor_id', $paddle_vendor_id) }}" placeholder="Paddle vendor ID..." name="paddle_vendor_id" id="paddle_vendor_id" class="form-control">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label for="paddle_apikey">Paddle API Key</label>
-                                                    <input type="text" placeholder="Paddle API Key..." value="{{ old('paddle_apikey', $paddle_apikey) }}" name="paddle_apikey" id="paddle_apikey" class="form-control">
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
-                                                    UPDATE</button></div>
-                                        </form>
-                                    </div>
-
-                                </div>
-                            </div>
-                            
-                        </div>
-                    </details>
-                </div>
+                
 
                 
             </div>

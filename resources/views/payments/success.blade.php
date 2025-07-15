@@ -38,12 +38,16 @@
                                 </h1>
 
                                 <p class="lead mb-4">
-                                    Thank you for your purchase. Your AI-generated document is ready for download.
+                                    @if($hasQuote)
+                                        Thank you for your purchase. Your order has been successfully processed. Please check your email for additional details.
+                                    @else
+                                        Thank you for your purchase. Your AI-generated document is ready for download. Please check your Email to get download link.
+                                    @endif
                                 </p>
 
-                                <a href="{{ route('download.document') }}" class="btn btn-primary btn-lg">
+                                {{-- <a href="{{ route('download.document') }}" class="btn btn-primary btn-lg">
                                     📥 Download Your Document
-                                </a>
+                                </a> --}}
 
                                 <div class="mt-4">
                                     <a href="{{ url('/') }}" class="text-decoration-none text-muted">

@@ -14,7 +14,9 @@ use Stripe\PaymentIntent;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Mail\OrderExpiresMail;
+use App\Models\AiDocument;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -354,24 +356,42 @@ class PageController extends Controller
 
         $id = Session::get("quotation_id");
 
-        if (config('app.env') == "local") {
-            $id = 1;
-        }
+        
+
+
+        // TEmporary remove for development
+        // if (config('app.env') == "local") {
+        //     $id = 1;
+        // }
+        
 
         if ($request->has("miiti")) {
             $id = 27;
         }
+        
 
         $quote = null;
+        $aiDoc = null;
+        $aiPrice = null;
         if (!empty($id)) {
             $quote = Quote::find($id);
         }
+
         if ($quote == null) {
 
-            return redirect('/order/get-quote');
+            $aiId = Session::get("aidocument_id");
+            
+            if (!empty($aiId)) {
+                $aiDoc = AiDocument::find($aiId);
+                $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
+            }
+
+            if($aiDoc == null){
+                return redirect('/order/get-quote');
+            }
         }
 
-
+        // dd($quote);
 
         if ($request->has("miiti")) {
             $id = 19;
@@ -388,12 +408,12 @@ class PageController extends Controller
 
 
         // If payment already completed
-        if ($quote->payment_status == 1) {
+        if ($quote?->payment_status == 1 || $aiDoc?->status == 'paid') {
 
             return redirect("/my-account");
         }
 
-        Session::remove('quotation_id');
+        // Session::remove('quotation_id');
 
 
         $backdated_time = Setting::where("param", "backdated_time")->first();
@@ -476,6 +496,8 @@ class PageController extends Controller
         }
 
 
+
+        // dd($payment_gateway);
         if (Auth::check() && Auth::user()->email == 'sabo7rr@gmail.com') {
 
 
@@ -531,7 +553,7 @@ class PageController extends Controller
                 $squareLocID = $squareLoc->value;
             }
 
-            return view('checkout_sqr', ["quote" => $quote, "backdatedTime" => $backdatedTime, "squareAppID" => $squareAppID, "squareLocID" => $squareLocID, "squarePMethods" => $squarePMethods, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout_sqr', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "squareAppID" => $squareAppID, "squareLocID" => $squareLocID, "squarePMethods" => $squarePMethods, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         } elseif ($payment_gateway == "paypal") {
 
             $setn = Setting::where("param", "paypal_client_id")->first();
@@ -542,7 +564,9 @@ class PageController extends Controller
             }
 
             return view('checkout_payp', ["quote" => $quote, "backdatedTime" => $backdatedTime, "paypalPublic" => $paypalPublic, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
-        } elseif ($payment_gateway == "nowpay") {
+        } 
+        
+        elseif ($payment_gateway == "nowpay") {
 
 
             $setn = Setting::where("param", "nowp_per_off")->first();
@@ -554,7 +578,55 @@ class PageController extends Controller
 
 
             return view('checkout_nowp', ["quote" => $quote, "backdatedTime" => $backdatedTime,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "nowp_per_off" => $nowp_per_off, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
-        } elseif ($payment_gateway == "airwallex") {
+        } 
+
+        elseif ($payment_gateway == "paddle") {
+
+
+            $setn = Setting::where("param", "nowp_per_off")->first();
+            if ($setn == null) {
+                $nowp_per_off = 0;
+            } else {
+                $nowp_per_off = floatval($setn->value);
+            }
+
+            $apiKey = Setting::where('param', 'paddle_apikey')->value('value');
+
+            $paddle_mode = Setting::where("param", "paddle_mode")->value('value');
+            if($paddle_mode && $paddle_mode == 'live'){
+                $apiKey = Setting::where("param", "paddle_apikey_live")->value('value');
+            }
+
+            $productId = Setting::where('param', 'paddle_quote_product_id')->value('value');
+            $amountis = (string) ($quote->cpw * 100);
+
+            $apiBaseUrl = $paddle_mode !== 'live' ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
+
+            $priceRes = Http::withToken($apiKey)->post($apiBaseUrl . '/prices', [
+                            'product_id' => $productId,
+                            'unit_price' => [
+                                'amount' => $amountis,
+                                'currency_code' => 'GBP',
+                            ],
+                            'description' => 'One-time purchase for AI-generated PDF'
+                        ]);
+
+                        if (!$priceRes->successful()) {
+                            Log::error('Paddle Price Create Error', ['response' => $priceRes->json()]);
+                            return back()->with('error', 'Failed to create Paddle price.');
+                        }
+
+                        $priceId = $priceRes->json('data.id');
+                      
+                        
+
+
+            return view('checkout_paddle', ["paddle_price_id" => $priceId, "quote" => $quote, "backdatedTime" => $backdatedTime,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "nowp_per_off" => $nowp_per_off, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+        } 
+        
+        
+        
+        elseif ($payment_gateway == "airwallex") {
 
 
             $stripePublic = Setting::where("param", "stripe_public")->first();
@@ -1003,8 +1075,6 @@ class PageController extends Controller
 
     public function checkCarDetails(Request $request, $reg_no)
     {
-
-
         $reg_no = str_replace(" ", "", trim($reg_no));
 
 

@@ -40,6 +40,7 @@
                             <option value="nowpay" {{ ($payment_gateway == "nowpay") ? 'selected' : '' }}>NowPayment</option>
                             <option value="squareup" {{ ($payment_gateway == "squareup") ? 'selected' : '' }}>SQUAREUP</option>
                             <option value="wordpress" {{ ($payment_gateway == "wordpress") ? 'selected' : '' }}>WOOCOMMERCE</option>
+                            <option value="paddle" {{ ($payment_gateway == "paddle") ? 'selected' : '' }}>Paddle</option>
                         </select>
 
                         <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
@@ -472,6 +473,73 @@
                 
             </div>
             </details>
+
+
+            <div class="col-12">
+                    <details class="my-3">
+                        <summary style="padding: 10px; font-size:20px; border:2px solid #999">Paddle Settings:</summary>
+                        <div class="row">
+                            <div class="col-12 col-md-12 text-left">
+                                <div class="card" style="border: 5px solid #999; ">
+                                    <div class="card-header text-bold ">Paddle Settings</div>
+                                    <div class="card-body" x-data="{ isLive: '{{ $paddle_mode }}' === 'live' }">
+                                        <form class="is_ckedit" autocomplete="off" action="{{ route('update.OpenAPI') }}" method="POST">
+                                            @csrf
+
+                                            <div class="mb-4">
+                                                <label class="font-weight-bold mr-2">Environment:</label>
+
+                                                <!-- Hidden input to bind to Alpine -->
+                                                <input type="hidden" name="paddle_mode" :value="isLive ? 'live' : 'sandbox'">
+
+                                                <button type="button"
+                                                        @click="isLive = !isLive"
+                                                        class="btn"
+                                                        :class="isLive ? 'btn-success' : 'btn-secondary'">
+                                                    <span x-text="isLive ? 'Live Mode' : 'Sandbox Mode'"></span>
+                                                </button>
+                                            </div>
+
+
+                                            <div class="row gap-5 w-full w-100" x-show="!isLive" x-transition>
+                                                <div class="form-group col-md-6">
+                                                    <label for="paddle_vendor_id">Paddle Client Token</label>
+                                                    <input type="text" value="{{ old('paddle_vendor_id', $paddle_vendor_id) }}" placeholder="Paddle Client Token..." name="paddle_vendor_id" id="paddle_vendor_id" class="form-control">
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label for="paddle_apikey">Paddle API Key</label>
+                                                    <input type="text" placeholder="Paddle API Key..." value="{{ old('paddle_apikey', $paddle_apikey) }}" name="paddle_apikey" id="paddle_apikey" class="form-control">
+                                                </div>
+                                            </div>
+
+
+                                             <div class="row gap-5 w-full w-100" x-show="isLive" x-transition>
+                                                <div class="form-group col-md-6">
+                                                    <label for="paddle_client_token_live">Paddle Client Token</label>
+                                                    <input type="text" value="{{ old('paddle_client_token_live', $paddle_client_token_live) }}" placeholder="Paddle Client Token..." name="paddle_client_token_live" id="paddle_client_token_live" class="form-control">
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label for="paddle_apikey_live">Paddle API Key</label>
+                                                    <input type="text" placeholder="Paddle API Key..." value="{{ old('paddle_apikey_live', $paddle_apikey_live) }}" name="paddle_apikey_live" id="paddle_apikey_live" class="form-control">
+                                                </div>
+                                            </div>
+
+
+                                            <div class="row">
+                                                <div class="col-md-12"> <p>Webhook: {{route('paddle.webhook')}}</p> </div>
+                                            </div>
+                                            
+                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
+                                                    UPDATE</button></div>
+                                        </form>
+                                    </div>
+
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </details>
+                </div>
 
 
 

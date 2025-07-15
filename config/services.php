@@ -36,6 +36,13 @@ return [
         'public' => env('STRIPE_PUBLIC'),
     ],
 
+    'mot' => [
+        "client_id" => env('MOT_CLIENT_ID'),
+        "client_secret" => env('MOT_CLIENT_SECRET'),
+        "scope_url" => "https://tapi.dvsa.gov.uk/.default",
+        "token_url" => "https://login.microsoftonline.com/a455b827-244f-4c97-b5b4-ce5d13b4d00c/oauth2/v2.0/token",
+        "api_key" => env('MOT_API_KEY'),
+    ]
 
 
 ];

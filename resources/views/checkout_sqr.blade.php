@@ -141,8 +141,8 @@
                                 id="new_email" placeholder="Email Address">
                             <label for="new_email">Email Address</label>
                         </div>
-                            <input type="hidden" value="{{$quote->first_name}}"  id="new_first_name">
-                            <input type="hidden" value="{{$quote->last_name}}"  id="new_last_name">
+                            <input type="hidden" value="{{$quote?->first_name}}"  id="new_first_name">
+                            <input type="hidden" value="{{$quote?->last_name}}"  id="new_last_name">
 
                        
                                 <div class="py-2" style="font-size: 16px;">If you do not have an account, we will create one for you
@@ -172,13 +172,13 @@
 
             <hr>
 
-            <h3>Amount: <span class="ms-5">£<span class="cpw_amount">{{ number_format($quote->cpw, 2) }}</span></span>
+            <h3>Amount: <span class="ms-5">£<span class="cpw_amount">{{ number_format($quote?->cpw, 2) }}</span></span>
             </h3>
 
             <form class="mb-4" onsubmit="applyPromoCode(event)">
                 <label class="mt-3">Have promo code?</label>
                 <div class="input-group" style="max-width:450px">
-                    <input autocomplete="off" value="{{ $quote->promo_code }}" class="form-control" id="promo_code"
+                    <input autocomplete="off" value="{{ $quote?->promo_code }}" class="form-control" id="promo_code"
                         placeholder="Promo code">
                     <div class="input-group-append" placeholder="Code">
                         <button class="sbutton input-group-text btn btn-secondary px-5">Apply</button>
@@ -302,104 +302,16 @@
         <div class="col-12 col-md-5 order-0 order-md-1">
 
             <div id="cfw-cart-summary" class="cart_summary" role="complementary">
-                <div id="cfw-cart-summary-content">
-                    <h3 class="cart_header">
-                        YOUR QUOTE </h3>
-                    <hr>
-                    <div class="d-block d-md-none mb-3"><a class="view_summ_action">View Summary Details <i
-                                class="fa fa-caret-down"></i></a></div>
 
-                    <div id="cfw-checkout-before-order-review"></div>
-                    <div class="d-none d-md-block  quotation_summ">
-                        <table id="cfw-cart" class="cfw-module">
-                            <tbody>
-                                <tr class="cart-item-row cart-item-f4bc63535943868b6eab0ed53bff19e0 cart_item">
+                @if ($quote)
+                    <x-quote-summery :quote="$quote" />
+                @endif
+                @if ($aiDoc)
+                    <x-ai-summery :aiDoc="$aiDoc" :aiPrice="$aiPrice" />
+                @endif
 
 
-
-                                    <th class="cfw-cart-item-description">
-
-                                        <div class="cfw-cart-item-data">
-                                            <div class="variationx">
-                                                <div class="dt">Registration Number:</div>
-                                                <div class="dd">{{ $quote->reg_number }}</div>
-                                                <div class="dt">Vehicle Make:</div>
-                                                <div class="dd">{{ $quote->vehicle_make }}</div>
-                                                <div class="dt">Vehicle Model:</div>
-                                                <div class="dd">{{ $quote->vehicle_model }}</div>
-                                                <div class="dt">Engine CC:</div>
-                                                <div class="dd">{{ $quote->engine_cc }}</div>
-                                                <div class="dt">Start Date:</div>
-                                                <div class="dd">{{ date('d-m-Y', strtotime($quote->start_date)) }}
-                                                </div>
-                                                <div class="dt">Start Time:</div>
-                                                <div class="dd">{{ date('h:m a', strtotime($quote->start_date .' '.$quote->start_time)) }}</div>
-                                                <div class="dt">End Date:</div>
-                                                <div class="dd">{{ date('d-m-Y', strtotime($quote->end_date)) }}</div>
-                                                <div class="dt">End Time:</div>
-                                                <div class="dd">{{ date('h:m a', strtotime($quote->end_date .' '.$quote->end_time))  }}</div>
-                                                <div class="dt">Date of Birth:</div>
-                                                <div class="dd">{{ date('d-m-Y', strtotime($quote->date_of_birth)) }}
-                                                </div>
-                                                <div class="dt">Reason:</div>
-                                                <div class="dd">{{ $quote->cover_reason }}</div>
-                                                <div class="dt">Name(s):</div>
-                                                <div class="dd">{{ $quote->title }} {{ $quote->first_name }} {{ $quote->middle_name }} {{ $quote->last_name }}</div>
-                                                <div class="dt">Address:</div>
-                                                <div class="dd">{{ $quote->address }}</div>
-                                                <div class="dt">Postcode:</div>
-                                                <div class="dd">{{ $quote->postcode }}</div>
-                                                <div class="dt">Occupation:</div>
-                                                <div class="dd">{{ $quote->occupation }}</div>
-                                                <div class="dt">Licence Type:</div>
-                                                <div class="dd">{{ $quote->licence_type }}</div>
-                                                <div class="dt">Licence Held Duration:</div>
-                                                <div class="dd">{{ $quote->licence_held_duration }}</div>
-                                                <div class="dt">Vehicle Value:</div>
-                                                <div class="dd">{{ $quote->vehicle_type }}</div>
-                                            </div>
-                                        </div>
-                                        <div class="cfw_cart_item_after_data">
-                                        </div>
-                                    </th>
-
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div id="cfw-totals-list" class="cfw-module d-none d-md-block  quotation_summ">
-                        <table class="cfw-module table">
-
-                            <tbody>
-                                <tr class="cart-subtotal">
-                                    <th>Subtotal</th>
-                                    <td><span class="woocommerce-Price-amount amount"><bdi><span
-                                                    class="woocommerce-Price-currencySymbol">£</span><span
-                                                    class="cpw_subtotal">{{ number_format($quote->cpw, 2) }}</span></bdi></span>
-                                    </td>
-                                </tr>
-                                <tr class="cart-discount d-none">
-                                    <th>Discount</th>
-                                    <td><span class="woocommerce-Price-amount amount"><bdi><span
-                                                    class="woocommerce-Price-currencySymbol">£</span><span
-                                                    class="cpw_discount"></span></bdi></span>
-                                    </td>
-                                </tr>
-                                <tr class="order-total">
-                                    <th>Total</th>
-                                    <td><strong><span class="woocommerce-Price-amount amount"><bdi><span
-                                                        class="woocommerce-Price-currencySymbol">£</span><span
-                                                        class="cpw_total">{{ number_format($quote->cpw, 2) }}</span></bdi></span></strong>
-                                    </td>
-                                </tr>
-
-
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
+                
             </div>
 
 
@@ -644,9 +556,9 @@
             }, 2000);
         }
 
-        const QUOTATION_ID = {{ $quote->id }};
-        const CPW_AMOUNT_DEFAULT = {{ $quote->cpw }};
-        let CPW_AMOUNT = {{ $quote->cpw }};
+        const QUOTATION_ID = {{ $quote?->id ?? $aiDoc?->id }};
+        const CPW_AMOUNT_DEFAULT = {{ $quote?->cpw ?? $aiPrice }};
+        let CPW_AMOUNT = {{ $quote?->cpw ?? $aiPrice }};
 
         let CLIENT_SECRET = "";
         
@@ -696,7 +608,7 @@
 
   
         async function setUpPayment(){
-    
+
             closeError();
 
             let this_amount = parseFloat(CPW_AMOUNT).toFixed(2);
@@ -839,7 +751,11 @@
                    showProgress('Confirming Payment. Please wait');
 
 
-                   const res = await fetch('/square-confirm-payment', {
+
+                   const comfirm_url = @json($aiDoc ? route('squire.ai.confirm') : '/square-confirm-payment' );
+
+
+                   const res = await fetch(comfirm_url, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -860,7 +776,12 @@
                         showProgress('Payment Confirmed');
                         const data = await res.json();
                         console.log('Success:', data);
-                        window.location.href = "{{ url('/confirmed') }}" + "?id=" + QUOTATION_ID;
+
+                        let baseUrl = @json(url('/confirmed'));
+                        // let confirmUrl = baseUrl + "?id=" + QUOTATION_ID + {{ $aiDoc ? ' +"&type=ai"' : '' }};
+                        // let confirmUrl = baseUrl + "?id=" + QUOTATION_ID + {!! $aiDoc ? '"&type=ai"' : '' !!};
+                        let confirmUrl = baseUrl + "?id=" + QUOTATION_ID{!! $aiDoc ? ' + "&type=ai"' : '' !!};
+                        window.location.href = confirmUrl;
                     }
 
                 } else {

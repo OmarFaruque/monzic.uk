@@ -81,9 +81,6 @@ class NowpayController extends Controller
         Auth::login($user);
         // Regenerate the current sesssion 
         $request->session()->regenerate();
-
-
-
         $rdata["user_name"] = $user->first_name . " " . $user->last_name;
         $rdata["user_email"] = $user->email;
         $rdata["user_address"] = $user->address;

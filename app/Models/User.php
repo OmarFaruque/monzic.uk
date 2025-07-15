@@ -58,6 +58,10 @@ class User extends Authenticatable
         return $this->hasMany(Quote::class, 'user_id');
     }
 
+    public function getNameAttribute()
+    {
+        return trim("{$this->first_name} {$this->last_name}");
+    }
 
     
 }

@@ -150,14 +150,14 @@
 
         {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
 
-        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
-        <!-- Load your combined static JS -->
-        <script src="{{ secure_asset('js/script.js') }}"></script>
-    
+        {{-- Load CSS --}}
+        
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
         <link rel="stylesheet" href="/css/bootstrap.min.css?ver={{config('app.version')}}">
 
         <link rel="stylesheet" href="/css/toastr.min.css?ver={{config('app.version')}}">
+
 
 
         <style>
@@ -312,15 +312,15 @@
                     <div class="main-menu-row">
                         <ul id="menu-header-menu" class="slimmenu">
                             <li id="menu-item-2159" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2159"><a href="/contact">Contact</a></li>
-                            <li id="menu-item-2159" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2159"><a href="{{ route('aidocument.show') }}">Ai Document</a></li>
+                            <li id="menu-item-2159" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2159"><a href="{{ route('aidocument.show') }}">AI Documents</a></li>
 
                                     
                             <li id="menu-item-2267"
                                 class="menu-btn account-btn menu-item menu-item-type-post_type menu-item-object-page menu-item-2267">
                                 <a href="/my-account">My Account</a></li>
-                            <li id="menu-item-2266"
+                            {{-- <li id="menu-item-2266"
                                 class="menu-btn account-btn menu-item menu-item-type-post_type menu-item-object-product menu-item-2266">
-                                <a href="/order/get-quote">{{ $pagstn['home_get_price'] }}</a></li>
+                                <a href="/order/get-quote">{{ $pagstn['home_get_price'] }}</a></li> --}}
                         </ul>
                     </div>
                 </div><!--mainmenu-->

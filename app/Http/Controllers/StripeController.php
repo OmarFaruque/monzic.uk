@@ -20,6 +20,7 @@ use Stripe\Customer;
 
 use Illuminate\Support\Facades\Mail;
 use App\Mail\VerifyEmailMail;
+use App\Models\AiDocument;
 use Exception;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -328,7 +329,6 @@ class StripeController extends Controller
 
             $quote = Quote::where("id", $order_id)->first();
 
-            // Just return if already done;
             if ($quote->payment_status == 1) {
 
                 $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
@@ -385,27 +385,49 @@ class StripeController extends Controller
         } elseif ($request->has("id")) {
 
 
-            $quote = Quote::where("id", $request->id)->first();
+            if($request->has('type') && $request->type == 'ai'){
+                $aiDoc = AiDocument::where("id", $request->id)->first();
+                if ($aiDoc->status == 'paid') {
+                    $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
+                    <i class="far fa-check-circle fa-5x"></i>
+                    <br>
+                    <h3>Payment Successfully Confirmed</h3>
+                    <p>You will receive an email confirming this order. Thanks!</p>
+                    <a href="/my-account" class="btn btn-success px-5">My Account</a>
+                </div>';
+                } else {
 
-            // Just return if already done;
-            if ($quote->payment_status == 1) {
+                    $html = '<div class="text-center alert alert-warning py-5 my-3 my-md-5">
+                    <i class="fa fa-info-circle fa-5x"></i>
+                    <br>
+                    <h3>Unknown Request</h3>
+                    <p>We are sorry we can\'t process your request. If you made payment, Don\'t worry, we will send you an email shortly confirming your order. Thanks</p>
+                    <a href="/my-account" class="btn btn-success px-5">My Account</a>
+                </div>';
+                }
 
-                $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
-                <i class="far fa-check-circle fa-5x"></i>
-                <br>
-                <h3>Payment Successfully Confirmed</h3>
-                <p>You will receive an email confirming this order. Thanks!</p>
-                <a href="/my-account" class="btn btn-success px-5">My Account</a>
-            </div>';
-            } else {
+            }else{
+                $quote = Quote::where("id", $request->id)->first();
 
-                $html = '        <div class="text-center alert alert-warning py-5 my-3 my-md-5">
-                <i class="fa fa-info-circle fa-5x"></i>
-                <br>
-                <h3>Unknown Request</h3>
-                <p>We are sorry we can\'t process your request. If you made payment, Don\'t worry, we will send you an email shortly confirming your order. Thanks</p>
-                <a href="/my-account" class="btn btn-success px-5">My Account</a>
-            </div>';
+                // Just return if already done sss omar 1;
+                if ($quote->payment_status == 1) {
+                    $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
+                    <i class="far fa-check-circle fa-5x"></i>
+                    <br>
+                    <h3>Payment Successfully Confirmed</h3>
+                    <p>You will receive an email confirming this order. Thanks!</p>
+                    <a href="/my-account" class="btn btn-success px-5">My Account</a>
+                </div>';
+                } else {
+
+                    $html = '<div class="text-center alert alert-warning py-5 my-3 my-md-5">
+                    <i class="fa fa-info-circle fa-5x"></i>
+                    <br>
+                    <h3>Unknown Request</h3>
+                    <p>We are sorry we can\'t process your request. If you made payment, Don\'t worry, we will send you an email shortly confirming your order. Thanks</p>
+                    <a href="/my-account" class="btn btn-success px-5">My Account</a>
+                </div>';
+                }
             }
         } else {
 

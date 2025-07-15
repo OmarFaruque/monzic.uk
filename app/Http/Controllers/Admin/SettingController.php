@@ -160,19 +160,7 @@ class SettingController extends Controller
             $openai_api_key = $setn->value;
         }
 
-        $setn = Setting::where("param", "paddle_vendor_id")->first();
-        if ($setn == null) {
-            $paddle_vendor_id = "";
-        } else {
-            $paddle_vendor_id = $setn->value;
-        }
-
-        $setn = Setting::where("param", "paddle_apikey")->first();
-        if ($setn == null) {
-            $paddle_apikey = "";
-        } else {
-            $paddle_apikey = $setn->value;
-        }
+       
 
         $setn = Setting::where("param", "ai_document_price")->first();
         if ($setn == null) {
@@ -186,7 +174,7 @@ class SettingController extends Controller
 
 
 
-        return view('admin.settings', ["ai_document_price" => $ai_document_price, "paddle_apikey" => $paddle_apikey, "paddle_vendor_id" => $paddle_vendor_id, "openai_api_key" => $openai_api_key, "expiresVis" => $expiresVis, "backdatedTime" => $backdatedTime, "carsearch_api" => $carsearch_api, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice]);
+        return view('admin.settings', ["ai_document_price" => $ai_document_price, "openai_api_key" => $openai_api_key, "expiresVis" => $expiresVis, "backdatedTime" => $backdatedTime, "carsearch_api" => $carsearch_api, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice]);
     }
 
 
@@ -385,8 +373,49 @@ class SettingController extends Controller
 
 
 
+        $setn = Setting::where("param", "paddle_vendor_id")->first();
+        if ($setn == null) {
+            $paddle_vendor_id = "";
+        } else {
+            $paddle_vendor_id = $setn->value;
+        }
 
-        return view('admin.payment-settings', ["payment_gateway" => $payment_gateway, "stripe_public" => $stripe_public, "stripe_secret" => $stripe_secret, "square_app_id" => $square_app_id, "square_access_token" => $square_access_token, "square_loc_id" => $square_loc_id, "square_pmethods" => $square_pmethods, "paypal_client_secret" => $paypal_client_secret, "paypal_client_id" => $paypal_client_id, "now_api_key" => $now_api_key, "now_ipn_secret" => $now_ipn_secret, "bank_name" => $bank_name, "bank_sort_code" => $bank_sort_code, "bank_account_number" => $bank_account_number, "bank_ref_number" => $bank_ref_number, "show_bank" => $show_bank, "nowp_per_off" => $nowp_per_off, "bank_infor_text" => $bank_infor_text, 'bank_per_off' => $bank_per_off, 'checkout_checkbox' => $checkout_checkbox, "stripe_whook_secret" => $stripe_whook_secret, "airwallex_client_id" => $airwallex_client_id, "airwallex_api_key" => $airwallex_api_key, "airwallex_whook_secret" => $airwallex_whook_secret, ]);
+        $setn = Setting::where("param", "paddle_apikey")->first();
+        if ($setn == null) {
+            $paddle_apikey = "";
+        } else {
+            $paddle_apikey = $setn->value;
+        }
+
+        $setn = Setting::where("param", "paddle_mode")->first();
+        if ($setn == null) {
+            $paddle_mode = "";
+        } else {
+            $paddle_mode = $setn->value;
+        }
+
+        $setn = Setting::where("param", "paddle_client_token_live")->first();
+        if ($setn == null) {
+            $paddle_client_token_live = "";
+        } else {
+            $paddle_client_token_live = $setn->value;
+        }
+
+        $setn = Setting::where("param", "paddle_apikey_live")->first();
+        if ($setn == null) {
+            $paddle_apikey_live = "";
+        } else {
+            $paddle_apikey_live = $setn->value;
+        }
+
+        
+
+        
+
+
+
+
+        return view('admin.payment-settings', ["paddle_apikey_live" => $paddle_apikey_live, "paddle_client_token_live" => $paddle_client_token_live, "paddle_mode" => $paddle_mode, "paddle_apikey" => $paddle_apikey, "paddle_vendor_id" => $paddle_vendor_id, "payment_gateway" => $payment_gateway, "stripe_public" => $stripe_public, "stripe_secret" => $stripe_secret, "square_app_id" => $square_app_id, "square_access_token" => $square_access_token, "square_loc_id" => $square_loc_id, "square_pmethods" => $square_pmethods, "paypal_client_secret" => $paypal_client_secret, "paypal_client_id" => $paypal_client_id, "now_api_key" => $now_api_key, "now_ipn_secret" => $now_ipn_secret, "bank_name" => $bank_name, "bank_sort_code" => $bank_sort_code, "bank_account_number" => $bank_account_number, "bank_ref_number" => $bank_ref_number, "show_bank" => $show_bank, "nowp_per_off" => $nowp_per_off, "bank_infor_text" => $bank_infor_text, 'bank_per_off' => $bank_per_off, 'checkout_checkbox' => $checkout_checkbox, "stripe_whook_secret" => $stripe_whook_secret, "airwallex_client_id" => $airwallex_client_id, "airwallex_api_key" => $airwallex_api_key, "airwallex_whook_secret" => $airwallex_whook_secret, ]);
     }
 
 
@@ -395,10 +424,50 @@ class SettingController extends Controller
     public function updateSetting(Request $request)
     {
 
+
         $user = $request->user();
         if (! $user->isAllowed(["SUPER_ADMIN"])) {
             return "Access Restricted";
         }
+
+
+        if ($request->input('param') === 'payment_gateway' && $request->input('value') === 'paddle') {
+            
+            $paddle_mode = Setting::where('param', 'paddle_mode')->value('value');
+            
+            $apiKey = $paddle_mode !== 'live' ? Setting::where('param', 'paddle_apikey')->value('value') : Setting::where('param', 'paddle_apikey_live')->value('value');
+            $apiUrl = $paddle_mode !== 'live' ? 'https://sandbox-api.paddle.com/products' : 'https://api.paddle.com/products';
+            $QproductId = $paddle_mode !== 'live' ? Setting::where('param', 'paddle_quote_product_id_test')->value('value') : Setting::where('param', 'paddle_quote_product_id')->value('value');
+
+            try {
+                     if (!$QproductId) {
+                        $productRes = Http::withToken($apiKey)->post($apiUrl, [
+                            'name' => 'Quote',
+                            'description' => 'Quote for Car Registration',
+                            'type' => 'standard',
+                            'tax_category' => 'standard',
+                        ]);
+
+                        
+
+                        if (!$productRes->successful()) {
+                            Log::error('Paddle Product Create Error', ['response' => $productRes->json()]);
+                            return back()->with('error', 'Failed to create Paddle product.');
+                        }
+
+                        $QproductId = $productRes->json('data.id');
+
+                        
+
+                        // Store in settings
+                        $qKey = $paddle_mode !== 'live' ? 'paddle_quote_product_id_test' : 'paddle_quote_product_id';
+                        Setting::updateOrCreate(['param' => $qKey], ['value' => $QproductId]);
+                    }
+                } catch (\Exception $e) {
+                    return back()->with('error', 'Failed to create Paddle product/price: ' . $e->getMessage());
+                }
+        }
+
 
 
         $validator = Validator::make($request->all(), [
@@ -475,68 +544,78 @@ class SettingController extends Controller
         $aiPrice = $request->input('ai_document_price');
         
 
+
         if ($aiPrice) {
-            $existingProductId = Setting::where('param', 'paddle_ai_product_id')->value('value');
-            $existingPriceId = Setting::where('param', 'paddle_ai_price_id')->value('value');
+            
+            // $existingPriceId = Setting::where('param', 'paddle_ai_price_id')->value('value');
+            
+            $paddle_mode = Setting::where('param', 'paddle_mode')->value('value');
+            if($paddle_mode != 'live'){
+                $apiKey = Setting::where('param', 'paddle_apikey')->value('value');
+                $productId = Setting::where('param', 'paddle_ai_product_id_test')->value('value');
+            }
+            else{
+                $apiKey = Setting::where('param', 'paddle_apikey_live')->value('value');
+                $productId = Setting::where('param', 'paddle_ai_product_id')->value('value');
+            }
 
-            if (!$existingProductId || !$existingPriceId) {
+
+            if (!$apiKey) {
+                return back()->with('error', 'Missing Paddle API Key in settings.');
+            }
+            $apiBaseUrl = $paddle_mode !== 'live' ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
+
+
                 try {
-                    
+                     if (!$productId) {
+                        //  Setting::updateOrCreate(['param' => 'paddle_product_id'], ['value' => $productId]);
+                        $productRes = Http::withToken($apiKey)->post($apiBaseUrl . '/products', [
+                            'name' => 'AI Document Download',
+                            'description' => 'Instant PDF generated from AI prompt',
+                            'type' => 'standard',
+                            'tax_category' => 'standard',
+                        ]);
 
-                    $apiKey = Setting::where('param', 'paddle_apikey')->value('value');
+                        
 
-                     if (!$apiKey) {
-                        return back()->with('error', 'Missing Paddle API Key in settings.');
+                        if (!$productRes->successful()) {
+                            Log::error('Paddle Product Create Error', ['response' => $productRes->json()]);
+                            return back()->with('error', 'Failed to create Paddle product.');
+                        }
+
+                        $productId = $productRes->json('data.id');
+
+                        
+
+                        // Store in settings
+                        $keyis =  $paddle_mode != 'live' ? 'paddle_ai_product_id_test' : 'paddle_ai_product_id';
+                        Setting::updateOrCreate(['param' => $keyis], ['value' => $productId]);
                     }
 
-                    
+                  
 
-                    
-                   
-                    //  Setting::updateOrCreate(['param' => 'paddle_product_id'], ['value' => $productId]);
+                        // Create price
+                        $priceRes = Http::withToken($apiKey)->post($apiBaseUrl . '/prices', [
+                            'product_id' => $productId,
+                            'unit_price' => [
+                                'amount' => (string) ($aiPrice * 100),
+                                'currency_code' => 'GBP',
+                            ],
+                            'description' => 'One-time purchase for AI-generated PDF'
+                        ]);
 
-                   $productRes = Http::withToken($apiKey)->post('https://sandbox-api.paddle.com/products', [
-                        'name' => 'AI Document Download',
-                        'description' => 'Instant PDF generated from AI prompt',
-                        'type' => 'standard',
-                        'tax_category' => 'standard',
-                    ]);
+                        if (!$priceRes->successful()) {
+                            Log::error('Paddle Price Create Error', ['response' => $priceRes->json()]);
+                            return back()->with('error', 'Failed to create Paddle price.');
+                        }
 
-                    
-
-                    if (!$productRes->successful()) {
-                        Log::error('Paddle Product Create Error', ['response' => $productRes->json()]);
-                        return back()->with('error', 'Failed to create Paddle product.');
-                    }
-
-                    $productId = $productRes->json('data.id');
-
-                    // Create price
-                    $priceRes = Http::withToken($apiKey)->post('https://sandbox-api.paddle.com/prices', [
-                        'product_id' => $productId,
-                        'unit_price' => [
-                            'amount' => $aiPrice,
-                            'currency_code' => 'USD',
-                        ],
-                        'description' => 'One-time purchase for AI-generated PDF',
-                        'billing_cycle' => null,
-                    ]);
-
-                    if (!$priceRes->successful()) {
-                        Log::error('Paddle Price Create Error', ['response' => $priceRes->json()]);
-                        return back()->with('error', 'Failed to create Paddle price.');
-                    }
-
-                    $priceId = $priceRes->json('data.id');
-
-                    // Store in settings
-                    Setting::updateOrCreate(['param' => 'paddle_ai_product_id'], ['value' => $productId]);
-                    Setting::updateOrCreate(['param' => 'paddle_ai_price_id'], ['value' => $priceId]);
+                        $priceId = $priceRes->json('data.id');
+                        Setting::updateOrCreate(['param' => 'paddle_ai_price_id'], ['value' => $priceId]);
 
                 } catch (\Exception $e) {
                     return back()->with('error', 'Failed to create Paddle product/price: ' . $e->getMessage());
                 }
-            }
+            
         }
 
 

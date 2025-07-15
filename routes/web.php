@@ -26,8 +26,7 @@ use App\Http\Controllers\Admin\BlackListController;
 
 use App\Http\Controllers\Admin\AdminTicketController;
 use App\Http\Controllers\AirWallexControllerController;
-
-
+use App\Http\Controllers\PaddleController;
 
 Route::get('/', [PageController::class, 'index']);
 Route::get('/customer-terms-of-business', [PageController::class, 'customerTermsOfBusiness']);
@@ -56,7 +55,7 @@ Route::post('/ticket/reply', [TicketController::class, 'replyToTicket']);
 Route::get('/order/get-quote', [PageController::class, 'policyGetQuote']);
 Route::post('/order/get-quote', [PageController::class, 'processQuote']);
 
-Route::get('/checkout', [PageController::class, 'checkout']);
+Route::get('/checkout', [PageController::class, 'checkout'])->name('checkout.page');
 
 
 Route::post('/promo-code', [PageController::class, 'getPromoCode']);
@@ -70,6 +69,9 @@ Route::post('/airwallex/registration', [AirWallexController::class, 'checkoutReg
 
 
 
+
+
+Route::post('/square-confirm-ai-payment', [SquareController::class, 'confirmAiPayment'])->name('squire.ai.confirm');
 Route::post('/square-confirm-payment', [SquareController::class, 'confirmPayment']);
 Route::post('/square-checkout-registration', [SquareController::class, 'checkoutRegistration']);
 
@@ -104,10 +106,15 @@ Route::get('/ai-document', [PageController::class, 'aiDocumentShow'])->name('aid
 
 
 
-Route::post('/generate-ai-document', [AiDocumentController::class, 'generateDocument']);
-Route::post('/generate-ai-document/paddle-webhook', [AiDocumentController::class, 'paddleWebhook'])->name('paddle.webhook');
+// Route::post('/generate-ai-document', [AiDocumentController::class, 'generateDocument']);
+Route::middleware(['web'])->post('/generate-ai-document', [AiDocumentController::class, 'generateDocument']);
 Route::get('/paddle/payment-success', [AiDocumentController::class, 'paddlePaymentSuccess'])->name('paddle.success');
+Route::get('/paddle/download-document', [AiDocumentController::class, 'aiDocumentDownload'])->name('download.document');
 Route::get('/pp/paddle/token', [AiDocumentController::class, 'getToken']);
+
+// Paddle Controller 
+Route::post('/paddle-checkout-registration', [PaddleController::class, 'checkoutRegistration']);
+Route::post('/generate-ai-document/paddle-webhook', [PaddleController::class, 'paddleWebhook'])->name('paddle.webhook');
 
 
 
@@ -290,3 +297,14 @@ Route::prefix('admin')->group(function () {
 
 
 Route::get('/unnecessary-cronjob', [AppAdminController::class, 'SendPolicyExpirationReminders']);
+
+
+
+Route::get('/deploy', function () {
+    // Run commands from your subdomain (e.g., sub.domain.com/deploy)
+    $output = shell_exec('cd ' . base_path() . ' && npm install 2>&1');
+
+    return "<pre>$output</pre>";
+
+    // echo shell_exec('which npm');
+});

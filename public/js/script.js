@@ -3,8 +3,42 @@ window.aiDocumentCallback = function() {
         docPrompt: '',
         loading: false,
         generatedDoc: '',
-        init() {
-            console.log('init function run');
+        uuid: '',
+        async init() {
+
+            try {
+
+                const res = await fetch('/pp/paddle/token', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    credentials: 'same-origin',
+                });
+
+                const data = await res.json();
+
+                if (!data.token) {
+                    console.error("❌ No Paddle token received");
+                    return;
+                }
+
+
+                Paddle.Environment.set("sandbox"); // Remove for live
+                Paddle.Initialize({
+                    token: data.token, 
+                    eventCallback: function (event) {
+                        if (event.type === "checkout.error") {
+                            console.error("Paddle Checkout Error:", event);
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("Paddle init error:", e);
+            }
+        },
+        async editRequest(){
+            this.generatedDoc = '';
         },
         async generateDocument() {
                 if (!this.docPrompt.trim()) return;
@@ -18,17 +52,15 @@ window.aiDocumentCallback = function() {
                         credentials: 'same-origin', 
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content 
                         },
                         body: JSON.stringify({ prompt: this.docPrompt })
                     });
 
                     const data = await response.json();
 
-                    
-
-                    this.generatedDoc = data.choices?.[0]?.message?.content || '⚠️ No response';
-                    console.log('return data: ', this.generatedDoc);
+                    this.generatedDoc = data?.content || '⚠️ No response';
+                    this.uuid = data?.uuid || 'No Response';
                 } catch (error) {
                     console.error(error);
                     this.generatedDoc = '❌ Error generating document.';
@@ -60,8 +92,6 @@ window.aiDocumentCallback = function() {
             if (data.error) return alert("❌ " + data.error);
 
 
-            console.log('return data: ', data)
-
             var itemsList = [
                 {
                     priceId: data.price_id,
@@ -69,20 +99,23 @@ window.aiDocumentCallback = function() {
                 }
             ];
 
-            console.log('itemslist: ', itemsList);
 
-                try {
-                    Paddle.Checkout.open({
-                        settings: {
+            try {
+                Paddle.Checkout.open({
+                    settings: {
                         displayMode: "overlay",
                         theme: "light",
-                        locale: "en"
-                        },
-                        items: itemsList
-                    });
-                    } catch (error) {
-                         console.error("❌ Checkout threw error:", error);
-                    }
+                        locale: "en",
+                        successUrl: data.success_url
+                    },
+                    items: itemsList,
+                    customData: {
+                        doc_uuid: this.uuid
+                    },
+                });
+                } catch (error) {
+                        console.error("❌ Checkout threw error:", error);
+                }
 
             // Redirect to Paddle Pay Link
             // window.location.href = data.url;

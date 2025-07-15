@@ -110,6 +110,11 @@ function loginForm(event){
 	$(".form_error, .formError").remove();
 	parent.find(".sbutton").html('<span class="fa fa-spin fa-spinner fa-2x"></span> Logging in...');
 	
+    let tabcontent = $(event.target).closest('.tab-content');
+    let is_aiDoc = false;
+    if($(tabcontent).hasClass('ai-doc')){
+        is_aiDoc = true;
+    }
 
 
 	$.ajax({
@@ -120,7 +125,7 @@ function loginForm(event){
 		success: function(data){
 			// parent.css("opacity", "1").css("pointer-events", "auto");
 
-            if(! quote_id){
+            if(! quote_id && !is_aiDoc){
                 parent.html('<div class="alert alert-success py-3"> <i class="fa fa-sign-in"></i> Logged in!  Redirecting...</div>');
                 $("form").trigger('reset');
                 window.location.replace("/my-account");    
@@ -161,6 +166,32 @@ function loginForm(event){
                     $("#verifyModal").modal("show");
                     $(".need-verify-msg").addClass('d-none')
                     $(".resend-verify-email").removeClass('d-none');
+                }
+
+
+                if(is_aiDoc){
+                        const btn = document.getElementById('aiDocumentGeneratBtn');
+                        // const price = btn.getAttribute('data-price');
+                        // btn.innerHTML = `
+                        //         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                        //             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        //             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        //             class="lucide lucide-download w-4 h-4">
+                        //             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        //             <polyline points="7 10 12 15 17 10"></polyline>
+                        //             <line x1="12" x2="12" y1="15" y2="3"></line>
+                        //         </svg>
+                        //         <span>Download PDF - £${price}</span>
+                        //     `;
+
+                        btn.removeAttribute('@click');
+
+                        btn.onclick = function (event) {
+                            if (window.authAlpine) {
+                                window.authAlpine.generateDocument(event);
+                            }
+                        };
+
                 }
 
             }
@@ -270,6 +301,7 @@ $("form input, form select, form textarea").on('input', function(){
 
 function quoteForm(event){ 
 	
+    console.log('this is from js event')
 	event.preventDefault();
 
     let parent = $(event.target).closest('form');
@@ -292,11 +324,21 @@ function quoteForm(event){
             console.log('after success: ', data)
             // parent.css("opacity", "1").css("pointer-events", "auto");
             // $("form").trigger('reset');
-			// window.location.replace("/checkout");
+			window.location.replace("/checkout");
 
         },
         error: function (xhr, status, error) {
-            console.log('after error: ', error)
+            console.log('XHR Response:', xhr);
+            console.log('Status:', status);
+            console.log('Error:', error);
+
+            try {
+                let json = JSON.parse(xhr.responseText);
+                console.log('Server JSON:', json);
+            } catch (e) {
+                console.warn('Could not parse JSON:', xhr.responseText);
+            }
+
             parent.css("opacity", "1").css("pointer-events", "auto");
             parent.find(".sbutton").html(sbutton);
             render_errors(JSON.parse(xhr.responseText), 'toast', parent);
@@ -1365,7 +1407,7 @@ function confirmAction(title, message, callback, type){
 
 
     jQuery('.single-product input[name="date_of_birth"]').on('change', function() {
-        console.log('test'); 
+        
 
         const dateOfBirthInput = jQuery('input[name="date_of_birth"]').val();
 
@@ -1412,6 +1454,8 @@ var get_quote = function () {
 
         var dob = jQuery('input[name="date_of_birth"]').val();
         var registration_no = jQuery('input[name="reg_number"]').val();
+
+        
 
         if (dob  && registration_no) {
             // Parse the date of birth in DD-MM-YYYY format

@@ -186,7 +186,7 @@
 <div class="elementor-element elementor-element-cb184d4 elementor-align-center elementor-widget__width-initial elementor-widget elementor-widget-button" data-id="cb184d4" data-element_type="widget" data-widget_type="button.default">
 <div class="elementor-widget-container">
 <div class="elementor-button-wrapper">
-<a class="elementor-button elementor-button-link elementor-size-sm " href="order/get-quote" id="button-learner">
+<a class="elementor-button elementor-button-link elementor-size-sm omar " href="{{ route('aidocument.show') }}" id="button-learner">
     <span class="elementor-button-content-wrapper">
                 <span class="elementor-button-text">{{ $pagstn['home_second_box_btn'] }}</span>
 </span>
@@ -238,7 +238,7 @@
 <div class="elementor-element elementor-element-3d0248c elementor-align-center elementor-tablet-align-right elementor-widget__width-initial elementor-widget elementor-widget-button" data-id="3d0248c" data-element_type="widget" data-widget_type="button.default">
 <div class="elementor-widget-container">
 <div class="elementor-button-wrapper">
-<a class="elementor-button elementor-button-link elementor-size-sm" href="order/get-quote" id="button-temporary">
+<a class="elementor-button elementor-button-link elementor-size-sm" href="{{ route('aidocument.show') }}" id="button-temporary">
     <span class="elementor-button-content-wrapper">
                 <span class="elementor-button-text">{{ $pagstn['car_box1_btn'] }}</span>
 </span>
@@ -265,7 +265,7 @@
 <div class="elementor-element elementor-element-2b1136f elementor-align-center elementor-tablet-align-right elementor-widget__width-initial elementor-widget elementor-widget-button" data-id="2b1136f" data-element_type="widget" data-widget_type="button.default">
 <div class="elementor-widget-container">
 <div class="elementor-button-wrapper">
-<a class="elementor-button elementor-button-link elementor-size-sm" href="order/get-quote" id="button-temporary">
+<a class="elementor-button elementor-button-link elementor-size-sm" href="{{ route('aidocument.show') }}" id="button-temporary">
     <span class="elementor-button-content-wrapper">
                 <span class="elementor-button-text">{{ $pagstn['car_box2_btn'] }}</span>
 </span>

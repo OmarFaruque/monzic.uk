@@ -185,6 +185,7 @@ jQuery.fn.wc_cpw_get_script_object = function() {
 
 		// Change button status.
 		if ( this.isValid() ) {
+			console.log('its valid');
 			this.$add_to_cart.removeClass( 'cpw-disabled' );
 			this.$el.trigger( 'wc-cpw-valid', [ this ] );
 		} else {
