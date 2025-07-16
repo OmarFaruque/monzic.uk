@@ -3,29 +3,32 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\OrderConfirmationMail;
-use App\Models\Intent;
-use App\Models\PromoCode;
-use App\Models\Quote;
+use Exception;
+use Stripe\Stripe;
 use App\Models\User;
+use Stripe\Customer;
+use App\Models\Quote;
+use App\Models\Intent;
 use App\Models\Setting;
+use App\Models\PromoCode;
+use Stripe\PaymentIntent;
+use App\Models\AiDocument;
 use Illuminate\Http\Request;
+use App\Mail\VerifyEmailMail;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Mail\AiDocumentReadyMail;
+use App\Mail\OrderConfirmationMail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Session;
-use Stripe\Exception\ApiErrorException;
-use Stripe\PaymentIntent;
-use Stripe\Stripe;
-use Stripe\Customer;
-
 use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifyEmailMail;
-use App\Models\AiDocument;
-use Exception;
-use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Session;
 
 
+use Illuminate\Support\Facades\Storage;
+use Stripe\Exception\ApiErrorException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\RateLimiter;
 
 class StripeController extends Controller
 {
@@ -38,7 +41,8 @@ class StripeController extends Controller
         $validatedData = Validator::make(
             $request->all(),
             [
-                'id' => 'required|exists:quotes,id',
+                'id' => 'required',
+                'type' => 'required|in:quote,ai_document',
                 'new_email' => 'required|unique:users,email',
                 'first_name' => 'required|string|min:1',
                 'last_name' => 'required|string|min:1',
@@ -56,14 +60,20 @@ class StripeController extends Controller
             ], 400);
         }
 
-
-        $quote = Quote::find($request->id);
-
-        // If payment already completed
-        if ($quote->payment_status == 1) {
-            return response()->json([
-                'message' => "This payment has already been confirmed",
-            ], 500);
+        if($request->type == 'quote'){
+            $quote = Quote::find($request->id);
+            if ($quote->payment_status == 1) {
+                return response()->json([
+                    'message' => "This payment has already been confirmed",
+                ], 500);
+            }
+        }else{
+            $aiDoc = AiDocument::find($request->id);
+            if ($aiDoc->status == 'paid') {
+                return response()->json([
+                    'message' => "This payment has already been confirmed",
+                ], 500);
+            }
         }
 
 
@@ -79,9 +89,12 @@ class StripeController extends Controller
         $user->password = Hash::make($request->new_password);
         $user->save();
 
-        if ($quote != null) {
+        if($request->type == 'quote'){
             $quote->user_id = $user->user_id;
             $quote->save();
+        }else{
+            $aiDoc->email = $user->email;
+            $aiDoc->save();
         }
 
         Auth::login($user);
@@ -146,7 +159,8 @@ class StripeController extends Controller
         $validatedData = Validator::make(
             $request->all(),
             [
-                'id' => 'required|exists:quotes,id',
+                'id' => 'required',
+                'type' => 'required|in:quote,ai_document',
             ]
         );
 
@@ -161,13 +175,35 @@ class StripeController extends Controller
             ], 400);
         }
 
-        $quote = Quote::find($request->id);
+        if($request->type == 'quote'){
+            $quote = Quote::find($request->id);
+            if (!$quote) {
+                return response()->json(['message' => 'Quote not found.'], 404);
+            }
 
-        // If payment already completed
-        if ($quote->payment_status == 1) {
-            return response()->json([
-                'client_secret' => "",
-            ]);
+            // If payment already completed
+            if ($quote->payment_status == 1) {
+                return response()->json([
+                    'client_secret' => "",
+                ]);
+            }
+            $amount = intval($quote->update_price * 100);
+            $client_reference_id = $quote->id;
+            $order_id = $quote->id;
+            $user = $quote->user;
+        }else{
+            $aiDoc = AiDocument::find($request->id);
+            if (!$aiDoc) {
+                return response()->json(['message' => 'AI Document not found.'], 404);
+            }
+            if ($aiDoc->status == 'paid') {
+                return response()->json(['message' => 'This payment has already been confirmed'], 500);
+            }
+            $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
+            $amount = intval(floatval($aiPrice) * 100);
+            $client_reference_id = $aiDoc->uuid;
+            $order_id = $aiDoc->id;
+            $user = $aiDoc->user;
         }
 
         $stripeSecret = Setting::where("param", "stripe_secret")->first();
@@ -178,16 +214,31 @@ class StripeController extends Controller
         }
         Stripe::setApiKey($stripeSecretKey);
 
+        $customer = null;
+        if ($user && $user->stripe_customer_id) {
+            try {
+                $customer = Customer::retrieve($user->stripe_customer_id);
+            } catch (\Stripe\Exception\InvalidRequestException $e) {
+                // Customer not found, create a new one
+                $customer = null;
+            }
+        }
 
-
-        $amount = intval($quote->update_price * 100);
-
-        $user = $quote->user;
+        if (!$customer) {
+            $customer = Customer::create([
+                'email' => $user ? $user->email : $request->new_email,
+                'name' => $user ? $user->first_name . ' ' . $user->last_name : $request->first_name . ' ' . $request->last_name,
+            ]);
+            if ($user) {
+                $user->stripe_customer_id = $customer->id;
+                $user->save();
+            }
+        }
 
         $session = \Stripe\Checkout\Session::create([
-            'customer' => $user->stripe_customer_id, // or 'customer_email' => $quote->user->email,
+            'customer' => $customer->id, // or 'customer_email' => $quote->user->email,
             // 'payment_method_types' => ['card'],
-            'client_reference_id' => $quote->id,
+            'client_reference_id' => $client_reference_id,
             'mode' => 'payment',
             'line_items' => [[
                 'price_data' => [
@@ -202,7 +253,8 @@ class StripeController extends Controller
                 'quantity' => 1,
             ]],
             'metadata' => [
-                'order_id' => $quote->id,
+                'order_id' => $order_id,
+                'type' => $request->type,
             ],
             'success_url' => url("/confirmed?session_id={CHECKOUT_SESSION_ID}"),
             'cancel_url' => url('/confirmed'),
@@ -323,46 +375,13 @@ class StripeController extends Controller
 
             $paymet_status = $session["payment_status"];
             $order_id = $session["metadata"]["order_id"];
+            $type = $session["metadata"]["type"];
 
 
 
-
-            $quote = Quote::where("id", $order_id)->first();
-
-            if ($quote->payment_status == 1) {
-
-                $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
-                <i class="far fa-check-circle fa-5x"></i>
-                <br>
-                <h3>Payment Successfully Confirmed</h3>
-                <p>You will receive an email confirming this order. Thanks!</p>
-                <a href="/my-account" class="btn btn-success px-5">My Account</a>
-            </div>';
-            } else {
-
-
-
-
-                if ($paymet_status === 'paid') {
-
-                    $quote->payment_status = 1;
-                    $quote->save();
-
-
-                    if ($quote->promo_code != "") {
-                        $promo = PromoCode::where("promo_code", $quote->promo_code)->first();
-                        if ($promo != null) {
-                            $promo->used = $promo->used + 1;
-                            $promo->save();
-                        }
-                    }
-
-                    // ADJUST TIME
-                    $quote = $this->adjustOrderStartTime($quote);
-
-                    //WE WILL SEND CONFIRMATION MESSAGE HERE                    
-                    Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
-
+            if($type == 'quote'){
+                $quote = Quote::where("id", $order_id)->first();
+                if ($quote->payment_status == 1) {
 
                     $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
                     <i class="far fa-check-circle fa-5x"></i>
@@ -372,16 +391,83 @@ class StripeController extends Controller
                     <a href="/my-account" class="btn btn-success px-5">My Account</a>
                 </div>';
                 } else {
+                    if ($paymet_status === 'paid') {
 
-                    $html = '<div class="text-center alert alert-info py-5 my-3 my-md-5">
-                    <i class="fa fa-info-circle fa-5x"></i>
+                        $quote->payment_status = 1;
+                        $quote->save();
+
+
+                        if ($quote->promo_code != "") {
+                            $promo = PromoCode::where("promo_code", $quote->promo_code)->first();
+                            if ($promo != null) {
+                                $promo->used = $promo->used + 1;
+                                $promo->save();
+                            }
+                        }
+
+                        // ADJUST TIME
+                        $quote = $this->adjustOrderStartTime($quote);
+
+                        //WE WILL SEND CONFIRMATION MESSAGE HERE                    
+                        Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
+
+
+                        $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
+                        <i class="far fa-check-circle fa-5x"></i>
+                        <br>
+                        <h3>Payment Successfully Confirmed</h3>
+                        <p>You will receive an email confirming this order. Thanks!</p>
+                        <a href="/my-account" class="btn btn-success px-5">My Account</a>
+                    </div>';
+                    } else {
+
+                        $html = '<div class="text-center alert alert-info py-5 my-3 my-md-5">
+                        <i class="fa fa-info-circle fa-5x"></i>
+                        <br>
+                        <h3>Payment not yet Confirmed</h3>
+                        <p>You will send you an email  confirming this order once we confirmed your payment. Thanks!</p>
+                        <a href="/my-account" class="btn btn-success px-5">My Account</a>
+                    </div>';
+                    }
+                }
+            }else{
+                $aiDoc = AiDocument::where("id", $order_id)->first();
+                if ($aiDoc->status == 'paid') {
+                    $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
+                    <i class="far fa-check-circle fa-5x"></i>
                     <br>
-                    <h3>Payment not yet Confirmed</h3>
-                    <p>You will send you an email  confirming this order once we confirmed your payment. Thanks!</p>
+                    <h3>Payment Successfully Confirmed</h3>
+                    <p>You will receive an email confirming this order. Thanks!</p>
                     <a href="/my-account" class="btn btn-success px-5">My Account</a>
                 </div>';
+                } else {
+                    if ($paymet_status === 'paid') {
+
+                        $aiDoc->status = 'paid';
+                        $aiDoc->save();
+
+                        $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
+                        <i class="far fa-check-circle fa-5x"></i>
+                        <br>
+                        <h3>Payment Successfully Confirmed</h3>
+                        <p>You will receive an email confirming this order. Thanks!</p>
+                        <a href="/my-account" class="btn btn-success px-5">My Account</a>
+                    </div>';
+                    } else {
+
+                        $html = '<div class="text-center alert alert-info py-5 my-3 my-md-5">
+                        <i class="fa fa-info-circle fa-5x"></i>
+                        <br>
+                        <h3>Payment not yet Confirmed</h3>
+                        <p>You will send you an email  confirming this order once we confirmed your payment. Thanks!</p>
+                        <a href="/my-account" class="btn btn-success px-5">My Account</a>
+                    </div>';
+                    }
                 }
             }
+
+
+
         } elseif ($request->has("id")) {
 
 
@@ -456,87 +542,104 @@ class StripeController extends Controller
     {
 
 
-        $stripeSecret = Setting::where("param", "stripe_secret")->first();
-        if ($stripeSecret == null) {
-            $stripeSecretKey = config('services.stripe.secret');
-        } else {
-            $stripeSecretKey = $stripeSecret->value;
+        
+        $event = $request->all();
+         
+        if (!isset($event['type'])) {
+            // Always return 200 to Stripe to avoid retries
+            return response()->json(['status' => 'ignored', 'reason' => 'No event type'], 200);
         }
 
-        $stn = Setting::where("param", "stripe_whook_secret")->first();
-        if ($stn == null) {
-            $stripeWHookSecret = "";
-        } else {
-            $stripeWHookSecret = $stn->value;
-        }
-
-        Stripe::setApiKey($stripeSecretKey);
-
-
-        $payload = @file_get_contents('php://input');
-        $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
-        $event = null;
-
-        // Use the secret provided by Stripe CLI for local testing
-        // or your webhook endpoint's secret.
-        $endpoint_secret = $stripeWHookSecret;
-
-
-
-        try {
-            $event = \Stripe\Webhook::constructEvent(
-                $payload,
-                $sig_header,
-                $endpoint_secret
-            );
-        } catch (\UnexpectedValueException $e) {
-            // Invalid payload
-            http_response_code(400);
-            exit();
-        } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            // Invalid signature
-            http_response_code(400);
-            exit();
-        }
+        $eventType = $event['type'] ?? null;
 
         if (
-            $event->type == 'checkout.session.completed'  || $event->type == 'checkout.session.async_payment_succeeded'
+            $eventType == 'checkout.session.completed'  || $eventType == 'checkout.session.async_payment_succeeded'
         ) {
+            $session = $event['data']['object'] ?? null;
 
-
-            $session = $event->data->object;
+            // Log the entire session object from Stripe to debug
+            // Log::info('Stripe Webhook Received:', (array) $session);
 
             $paymet_status = $session["payment_status"];
             $order_id = $session["metadata"]["order_id"];
+            $type = $session["metadata"]["type"];
 
-            $quote = Quote::where("id", $order_id)->first();
+            if($type == 'quote'){
+                $quote = Quote::where("id", $order_id)->first();
 
-            // Just return if already done;
-            if ($quote->payment_status != 1) {
+                // Just return if already done;
+                if ($quote->payment_status != 1) {
 
-                if ($paymet_status === 'paid') {
+                    if ($paymet_status === 'paid') {
 
-                    $quote->payment_status = 1;
-                    $quote->save();
+                        $quote->payment_status = 1;
+                        $quote->save();
 
 
-                    if ($quote->promo_code != "") {
-                        $promo = PromoCode::where("promo_code", $quote->promo_code)->first();
-                        if ($promo != null) {
-                            $promo->used = $promo->used + 1;
-                            $promo->save();
+                        if ($quote->promo_code != "") {
+                            $promo = PromoCode::where("promo_code", $quote->promo_code)->first();
+                            if ($promo != null) {
+                                $promo->used = $promo->used + 1;
+                                $promo->save();
+                            }
+                        }
+
+                        // ADJUST TIME
+                        $quote = $this->adjustOrderStartTime($quote);
+
+                        try{
+                            //WE WILL SEND CONFIRMATION MESSAGE HERE                    
+                            Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
+
+                        }catch(\Exception){
+
                         }
                     }
+                }
+            }else{
+                $aiDoc = AiDocument::where("id", $order_id)->first();
+                // Just return if already done;
+                if ($aiDoc->status != 'paid') {
 
-                    // ADJUST TIME
-                    $quote = $this->adjustOrderStartTime($quote);
+                    
 
-                    try{
-                        //WE WILL SEND CONFIRMATION MESSAGE HERE                    
-                        Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
+                    if ($paymet_status === 'paid') {
 
-                    }catch(\Exception){
+                        // Generate PDF from content
+                        $pdf = Pdf::loadView('ai-pdf-template', [
+                            'content' => $aiDoc->content,
+                            'title' => $aiDoc->prompt,
+                        ]);
 
+                        $pdfFileName = 'ai_doc_' . now()->timestamp . '.pdf';
+                        $pdfPath = "ai-docs/{$pdfFileName}";
+
+                        Storage::disk('public')->put($pdfPath, $pdf->output());
+
+
+
+                        $aiDoc->status = 'paid';
+                        $aiDoc->amount = $session['amount_total'] / 100;
+                        $aiDoc->currency = $session['currency'];
+                        $aiDoc->pdf_path = $pdfPath;
+                        $aiDoc->paddle_checkout_id = $session['id'];
+                        $aiDoc->save();
+
+                        $emailTemplate = Setting::where('param', 'page[ai_email]')->value('value');
+
+                        $placeholders = [
+                            '[username]'      => $aiDoc->user->name ?? 'Customer',
+                            '[document_link]' => asset('storage/' . $pdfPath),
+                            '[document_title]'=> $aiDoc->prompt,
+                            '[created_at]'    => $aiDoc->created_at->format('F j, Y'),
+                        ];
+
+                        $finalEmailBody = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate);
+                         try {
+                            Mail::to($aiDoc->email)->send(new AiDocumentReadyMail($finalEmailBody));
+                        } catch (\Exception $e) {
+                            Log::error('AI Document mail failed', ['error' => $e->getMessage()]);
+                        }
                     }
                 }
             }

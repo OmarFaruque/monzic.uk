@@ -563,7 +563,7 @@ class PageController extends Controller
                 $paypalPublic = $setn->value;
             }
 
-            return view('checkout_payp', ["quote" => $quote, "backdatedTime" => $backdatedTime, "paypalPublic" => $paypalPublic, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout_payp', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "paypalPublic" => $paypalPublic, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         } 
         
         elseif ($payment_gateway == "nowpay") {
@@ -577,7 +577,7 @@ class PageController extends Controller
             }
 
 
-            return view('checkout_nowp', ["quote" => $quote, "backdatedTime" => $backdatedTime,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "nowp_per_off" => $nowp_per_off, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout_nowp', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "nowp_per_off" => $nowp_per_off, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         } 
 
         elseif ($payment_gateway == "paddle") {
@@ -597,8 +597,18 @@ class PageController extends Controller
                 $apiKey = Setting::where("param", "paddle_apikey_live")->value('value');
             }
 
-            $productId = Setting::where('param', 'paddle_quote_product_id')->value('value');
-            $amountis = (string) ($quote->cpw * 100);
+
+            if($quote){
+                $productId = Setting::where('param', 'paddle_quote_product_id')->value('value');
+                $amountis = (string) ($quote->cpw * 100);
+            }
+
+            if($aiDoc){
+                $productId = Setting::where('param', 'paddle_ai_product_id')->value('value');
+                $amountis = (string) ($aiPrice * 100);
+            }
+
+            
 
             $apiBaseUrl = $paddle_mode !== 'live' ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
 
@@ -621,7 +631,7 @@ class PageController extends Controller
                         
 
 
-            return view('checkout_paddle', ["paddle_price_id" => $priceId, "quote" => $quote, "backdatedTime" => $backdatedTime,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "nowp_per_off" => $nowp_per_off, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout_paddle', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "paddle_price_id" => $priceId, "quote" => $quote, "backdatedTime" => $backdatedTime,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "nowp_per_off" => $nowp_per_off, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         } 
         
         
@@ -636,7 +646,7 @@ class PageController extends Controller
                 $stripePublicKey = $stripePublic->value;
             }
 
-            return view('checkout_airwallex', ["quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout_airwallex', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         } else {
 
             $stripePublic = Setting::where("param", "stripe_public")->first();
@@ -646,7 +656,7 @@ class PageController extends Controller
                 $stripePublicKey = $stripePublic->value;
             }
 
-            return view('checkout', ["quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         }
     }
 
@@ -1060,6 +1070,7 @@ class PageController extends Controller
 
         // Store the quotation ID in the session
         Session::put('quotation_id', $quote->id);
+        Session::forget('aidocument_id'); // Clear the other ID
 
         // Return a success response
         return response()->json([

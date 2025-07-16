@@ -3,31 +3,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\OrderConfirmationMail;
-use App\Models\Intent;
-use App\Models\PromoCode;
-use App\Models\Quote;
+use Exception;
+use Carbon\Carbon;
+use Stripe\Stripe;
 use App\Models\User;
+use Stripe\Customer;
+use App\Models\Quote;
+use App\Models\Intent;
 use App\Models\Setting;
+use App\Models\PromoCode;
+use Stripe\PaymentIntent;
+use App\Models\AiDocument;
 use Illuminate\Http\Request;
+use App\Mail\VerifyEmailMail;
+use App\Mail\AiDocumentReadyMail;
+
+use App\Mail\OrderConfirmationMail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Session;
-use Stripe\Exception\ApiErrorException;
-use Stripe\PaymentIntent;
-use Stripe\Stripe;
-use Stripe\Customer;
-
-use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifyEmailMail;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
-use Exception;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Session;
 
 
+use Stripe\Exception\ApiErrorException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\RateLimiter;
 
 
 
@@ -149,13 +151,27 @@ class AirWallexController extends Controller
     public function paymentIntent(Request $request)
     {
 
+
+        Log::info('Payment Intent Request', [
+            'request' => $request->all(),
+        ]);
+
         // Save imntent seoartedly
-        $validatedData = Validator::make(
-            $request->all(),
-            [
-                'id' => 'required|exists:quotes,id',
-            ]
-        );
+        if ($request->has('type') && $request->type == 'ai') {
+            $validatedData = Validator::make(
+                $request->all(),
+                [
+                    'id' => 'required|exists:ai_documents,id',
+                ]
+            );
+        } else {
+            $validatedData = Validator::make(
+                $request->all(),
+                [
+                    'id' => 'required|exists:quotes,id',
+                ]
+            );
+        }
 
 
 
@@ -168,21 +184,42 @@ class AirWallexController extends Controller
             ], 400);
         }
 
-        $quote = Quote::find($request->id);
 
-        // If payment already completed
-        if ($quote->payment_status == 1) {
-            return response()->json([
-                'client_secret' => "",
-            ]);
+
+
+
+        if ($request->has('type') && $request->type == 'ai') {
+            $aiDoc = AiDocument::find($request->id);
+            if ($aiDoc == null) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "AI Document not found",
+                ], 404);
+            }
+            $amount = Setting::where("param", "ai_document_price")->pluck('value')->first();
+            $amount = $amount * 100; // Convert to minor units
+            $user = $aiDoc->user;
+            $merchant_order_id = 'ai_' . $aiDoc->id . '_' . time();
+            // $aiDoc->spayment_id = $merchant_order_id;
+            // $aiDoc->save();
+        } else {
+            $quote = Quote::find($request->id);
+
+            // If payment already completed
+            if ($quote->payment_status == 1) {
+                return response()->json([
+                    'client_secret' => "",
+                ]);
+            }
+
+            $amount = $quote->update_price;
+            $user = $quote->user;
+            $merchant_order_id = 'order_' . $quote->id . '_' . time();
+            $quote->spayment_id = $merchant_order_id;
+            $quote->save();
         }
 
 
-
-
-        $amount = $quote->update_price;
-
-        $user = $quote->user;
 
 
 
@@ -200,35 +237,44 @@ class AirWallexController extends Controller
 
 
 
-        $quote->spayment_id = 'order_' . $quote->id . '_' . time();
+        $payload = [
+            'request_id' => uniqid('req_', true),
+            'amount' => $amount, // GBP  in minor units
+            'currency' => 'GBP',
+            'merchant_order_id' => $merchant_order_id,
+            'customer' => [
+                'email' => $user->email,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'phone_number' => $user->phone_number ?? '',
+            ],
+            'return_url' => url('/airwallex/confirmed'),
+        ];
 
-        $quote->save();
+        if ($request->has('type') && $request->type == 'ai') {
+            $payload['descriptor'] = 'AI Document Purchase';
+            $payload['metadata'] = [
+                'order_id' => $aiDoc->id,
+                'type' => 'ai_document',
+                'full_name' => $user->name,
+                'email' => $user->email,
+            ];
+        } else {
+            $payload['descriptor'] = 'Vehicle Detail Document';
+            $payload['metadata'] = [
+                'order_id' => $quote->id,
+                'type' => 'quote',
+                'order_number' => $quote->order_number,
+                'full_name' => $quote->first_name . ' ' . $quote->middle_name . ' ' . $quote->last_name,
+                'address' => $quote->address . ', ' . $quote->postcode,
+                'phone_number' => $quote->countact_number,
+                'reg' => @$quote->reg_number,
+            ];
+        }
 
 
         $response = Http::withToken($accessToken)
-            ->post($endpoint, [
-                'request_id' => uniqid('req_', true),
-                'amount' => $amount, // GBP  in minor units
-                'currency' => 'GBP',
-                'merchant_order_id' => $quote->spayment_id,
-                'customer' => [
-                    // 'address' => $quote->address . ', ' . $quote->postcode,
-                    'email' => $user->email,
-                    'first_name' => $quote->first_name,
-                    'last_name' => $quote->last_name,
-                    'phone_number' => $quote->countact_number,
-                ],
-                'descriptor' => 'Vehicle Detail Document',
-                'metadata' => [
-                    'order_id' => $quote->id,
-                    'order_number' => $quote->order_number,
-                    'full_name' => $quote->first_name. ' '.$quote->middle_name.' '.$quote->last_name,
-                    'address' => $quote->address . ', ' . $quote->postcode,
-                    'phone_number' => $quote->countact_number,
-                    'reg' => @$quote->reg_number,
-                ],
-                'return_url' => url('/airwallex/confirmed'),
-            ]);
+            ->post($endpoint, $payload);
 
         if ($response->successful()) {
 
@@ -240,6 +286,12 @@ class AirWallexController extends Controller
                 "client_secret" => $data["client_secret"],
             ]);
         }
+
+        Log::error('Airwallex Payment Intent Failed', [
+            'request_payload' => $payload,
+            'response_status' => $response->status(),
+            'response_body' => $response->json()
+        ]);
 
         return response()->json([
             'success' => false,
@@ -285,63 +337,116 @@ class AirWallexController extends Controller
                 $paymet_status  = $response->json('status'); // <-- status field
 
                 $order_id = $response->json('metadata.order_id');
+                $type = $response->json('metadata.type');
 
 
+                if ($type == 'ai_document') {
 
-                $quote = Quote::where("id", $order_id)->first();
+                    $aiDoc = AiDocument::where("id", $order_id)->first();
 
-                // Just return if already done;
-                if ($quote->payment_status == 1) {
-
-                    $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
+                    if ($aiDoc->status == 'paid') {
+                        $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
                 <i class="far fa-check-circle fa-5x"></i>
                 <br>
                 <h3>Payment Successfully Confirmed</h3>
                 <p>You will receive an email confirming this order. Thanks!</p>
                 <a href="/my-account" class="btn btn-success px-5">My Account</a>
             </div>';
-                } else {
+                    } else {
+                        if ($paymet_status === 'SUCCEEDED') {
+
+                            $aiDoc->status = 'paid';
+                            $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
+                            $aiDoc->amount = floatval($aiPrice);
+                            $aiDoc->save();
+
+                            $emailTemplate = Setting::where('param', 'page[ai_email]')->value('value');
+
+                            $placeholders = [
+                                '[username]'      => $aiDoc->user->name ?? 'Customer',
+                                '[document_link]' => asset('storage/' . $aiDoc->pdf_path),
+                                '[document_title]' => $aiDoc->prompt,
+                                '[created_at]'    => $aiDoc->created_at->format('F j, Y'),
+                            ];
+
+                            $finalEmailBody = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate);
+                            Mail::to($aiDoc->email)->send(new AiDocumentReadyMail($finalEmailBody));
 
 
-
-
-                    if ($paymet_status === 'SUCCEEDED') {
-
-                        $quote->payment_status = 1;
-                        $quote->save();
-
-
-                        if ($quote->promo_code != "") {
-                            $promo = PromoCode::where("promo_code", $quote->promo_code)->first();
-                            if ($promo != null) {
-                                $promo->used = $promo->used + 1;
-                                $promo->save();
-                            }
-                        }
-
-                        // ADJUST TIME
-                        $quote = $this->adjustOrderStartTime($quote);
-
-                        //WE WILL SEND CONFIRMATION MESSAGE HERE                    
-                        Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
-
-
-                        $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
+                            $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
                     <i class="far fa-check-circle fa-5x"></i>
                     <br>
                     <h3>Payment Successfully Confirmed</h3>
                     <p>You will receive an email confirming this order. Thanks!</p>
                     <a href="/my-account" class="btn btn-success px-5">My Account</a>
                 </div>';
-                    } else {
+                        } else {
 
-                        $html = '<div class="text-center alert alert-info py-5 my-3 my-md-5">
+                            $html = '<div class="text-center alert alert-info py-5 my-3 my-md-5">
                     <i class="fa fa-info-circle fa-5x"></i>
                     <br>
                     <h3>Payment not yet Confirmed</h3>
                     <p>You will send you an email  confirming this order once we confirmed your payment. Thanks!</p>
                     <a href="/my-account" class="btn btn-success px-5">My Account</a>
                 </div>';
+                        }
+                    }
+                } else {
+                    $quote = Quote::where("id", $order_id)->first();
+
+                    // Just return if already done;
+                    if ($quote->payment_status == 1) {
+
+                        $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
+                <i class="far fa-check-circle fa-5x"></i>
+                <br>
+                <h3>Payment Successfully Confirmed</h3>
+                <p>You will receive an email confirming this order. Thanks!</p>
+                <a href="/my-account" class="btn btn-success px-5">My Account</a>
+            </div>';
+                    } else {
+
+
+
+
+                        if ($paymet_status === 'SUCCEEDED') {
+
+                            $quote->payment_status = 1;
+                            $quote->save();
+
+
+                            if ($quote->promo_code != "") {
+                                $promo = PromoCode::where("promo_code", $quote->promo_code)->first();
+                                if ($promo != null) {
+                                    $promo->used = $promo->used + 1;
+                                    $promo->save();
+                                }
+                            }
+
+                            // ADJUST TIME
+                            $quote = $this->adjustOrderStartTime($quote);
+
+                            //WE WILL SEND CONFIRMATION MESSAGE HERE                    
+                            Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
+
+
+                            $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
+                    <i class="far fa-check-circle fa-5x"></i>
+                    <br>
+                    <h3>Payment Successfully Confirmed</h3>
+                    <p>You will receive an email confirming this order. Thanks!</p>
+                    <a href="/my-account" class="btn btn-success px-5">My Account</a>
+                </div>';
+                        } else {
+
+                            $html = '<div class="text-center alert alert-info py-5 my-3 my-md-5">
+                    <i class="fa fa-info-circle fa-5x"></i>
+                    <br>
+                    <h3>Payment not yet Confirmed</h3>
+                    <p>You will send you an email  confirming this order once we confirmed your payment. Thanks!</p>
+                    <a href="/my-account" class="btn btn-success px-5">My Account</a>
+                </div>';
+                        }
                     }
                 }
             } else {
@@ -423,35 +528,61 @@ class AirWallexController extends Controller
         if ($event === 'payment_intent.succeeded') {
 
             $order_id = $data['object']['metadata']['order_id'] ?? null;
+            $type = $data['object']['metadata']['type'] ?? null;
 
-            $quote = Quote::where("id", $order_id)->first();
+            if($type == 'quote'){
+                $quote = Quote::where("id", $order_id)->first();
 
-            // Just return if already done;
-            if ($quote->payment_status != 1) {
+                // Just return if already done;
+                if ($quote->payment_status != 1) {
 
-                // if ($paymet_status === 'paid') {
+                    // if ($paymet_status === 'paid') {
 
-                $quote->payment_status = 1;
-                $quote->save();
+                    $quote->payment_status = 1;
+                    $quote->save();
 
 
-                if ($quote->promo_code != "") {
-                    $promo = PromoCode::where("promo_code", $quote->promo_code)->first();
-                    if ($promo != null) {
-                        $promo->used = $promo->used + 1;
-                        $promo->save();
+                    if ($quote->promo_code != "") {
+                        $promo = PromoCode::where("promo_code", $quote->promo_code)->first();
+                        if ($promo != null) {
+                            $promo->used = $promo->used + 1;
+                            $promo->save();
+                        }
                     }
-                }
 
-                // ADJUST TIME
-                $quote = $this->adjustOrderStartTime($quote);
+                    // ADJUST TIME
+                    $quote = $this->adjustOrderStartTime($quote);
 
-                try {
-                    //WE WILL SEND CONFIRMATION MESSAGE HERE                    
-                    Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
-                } catch (\Exception) {
+                    try {
+                        //WE WILL SEND CONFIRMATION MESSAGE HERE                    
+                        Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
+                    } catch (\Exception) {
+                    }
+                    // }
                 }
-                // }
+            }elseif($type == 'ai_document'){
+                $aiDoc = AiDocument::where("id", $order_id)->first();
+
+                // Just return if already done;
+                if ($aiDoc->status != 'paid') {
+
+                    $aiDoc->status = 'paid';
+                    $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
+                    $aiDoc->amount = floatval($aiPrice);
+                    $aiDoc->save();
+
+                    $emailTemplate = Setting::where('param', 'page[ai_email]')->value('value');
+
+                    $placeholders = [
+                        '[username]'      => $aiDoc->user->name ?? 'Customer',
+                        '[document_link]' => asset('storage/' . $aiDoc->pdf_path),
+                        '[document_title]'=> $aiDoc->prompt,
+                        '[created_at]'    => $aiDoc->created_at->format('F j, Y'),
+                    ];
+
+                    $finalEmailBody = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate);
+                    Mail::to($aiDoc->email)->send(new AiDocumentReadyMail($finalEmailBody));
+                }
             }
         }
 

@@ -90,7 +90,7 @@ Route::post('/now-ipn', [NowpayController::class, 'webHook']);
 
 
 Route::post('/checkout-bank-payment', [CheckoutController::class, 'bankPayment']);
-Route::get('/bank-confirm-payment/{policy_number}', [CheckoutController::class, 'confirmed']);
+Route::get('/bank-confirm-payment/{policy_number}', [CheckoutController::class, 'bankConfirmed']);
 
 
 Route::post('/checkcardetails/{reg_no}', [PageController::class, 'checkCarDetails']);

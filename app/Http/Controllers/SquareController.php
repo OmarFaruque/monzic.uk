@@ -337,9 +337,9 @@ class SquareController extends Controller
             if ($payment->getStatus() == "COMPLETED") {
 
 
-                Log::info('aQueryPaymentSuccess', [
-                    'payment' => $payment
-                ]);
+                // Log::info('aQueryPaymentSuccess', [
+                //     'payment' => $payment
+                // ]);
                 
 
                 $spayment_id = $payment->getId();

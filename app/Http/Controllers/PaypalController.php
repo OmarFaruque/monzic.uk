@@ -3,27 +3,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\OrderConfirmationMail;
-use App\Models\PromoCode;
-use App\Models\Quote;
-use App\Models\User;
-use App\Models\Setting;
 use Exception;
+use App\Models\User;
+use App\Models\Quote;
+use App\Models\Setting;
+use App\Models\PromoCode;
+use App\Models\AiDocument;
 use Illuminate\Http\Request;
+use App\Mail\VerifyEmailMail;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Mail\AiDocumentReadyMail;
+
+
+use App\Mail\OrderConfirmationMail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
-
 use Illuminate\Support\Facades\Http;
 
 
-
 use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifyEmailMail;
-use Illuminate\Support\Facades\RateLimiter;
-
-
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\RateLimiter;
 
 class PaypalController extends Controller
 {
@@ -35,15 +37,18 @@ class PaypalController extends Controller
     public function paypalAction(Request $request)
     {
 
-        
-        
-        // Save imntent seoartedly
-        $validatedData = Validator::make(
-            $request->all(),
-            [
+        $type = $request->input('type', 'quote'); // Default to 'quote' if not provided
+
+        if ($type === 'ai') {
+            $validatedData = Validator::make($request->all(), [
+                'id' => 'required|exists:ai_documents,id',
+            ]);
+        } else {
+            $validatedData = Validator::make($request->all(), [
                 'id' => 'required|exists:quotes,id',
-            ]
-        );
+            ]);
+        }
+
         if ($validatedData->fails()) {
             return response()->json([
                 'status' => false,
@@ -52,14 +57,18 @@ class PaypalController extends Controller
             ], 400);
         }
 
-        $quote = Quote::where("id", $request->id)->first();
-
-        // Just return if already done;
-        if ($quote->payment_status == 1) {
-
-            return response()->json([
-                'status' => "success",
-            ]);
+        if ($type === 'ai') {
+            $document = AiDocument::findOrFail($request->id);
+            if ($document->status === 'paid') {
+                return response()->json(['status' => 'success']);
+            }
+            $amount = Setting::where('param', 'ai_document_price')->value('value');
+        } else {
+            $quote = Quote::where("id", $request->id)->first();
+            if ($quote->payment_status == 1) {
+                return response()->json(['status' => 'success']);
+            }
+            $amount = $quote->update_price;
         }
 
 
@@ -88,10 +97,6 @@ class PaypalController extends Controller
         } else {
             $client_secret = $setn->value;
         }
-
-        
-        $amount = $quote->update_price;
-
 
         
         if ($request->action == "create_order") {
@@ -123,103 +128,93 @@ class PaypalController extends Controller
 
             return $responseData;
 
-        } elseif ($request->action == "capture_order") {
+        } elseif ($request->action == 'capture_order') {
+            try {
+                $validator = Validator::make($request->all(), [
+                    'orderID' => 'required',
+                    'details' => 'required|array'
+                ]);
+    
+                if ($validator->fails()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'validation error',
+                        'errors' => $validator->errors()
+                    ], 400);
+                }
+    
+                $orderID = $request->orderID;
+                $responseData = $request->details;
 
-
-            $validator = Validator::make($request->all(), [
-                'orderID' => 'required'
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'validation error',
-                    'errors' => $validator->errors()
-                ], 400);
-            }
-
-
-            
-
-            $orderID = $request->orderID;
-
-            
-            
-            $postUrl = $paypalURL . 'checkout/orders/' . $orderID . '/capture';
-
-            
-            // Initialize cURL session
-            $ch = curl_init();
-
-            // Set cURL options
-            curl_setopt($ch, CURLOPT_URL, $postUrl);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/json',
-            ]);
-            curl_setopt($ch, CURLOPT_USERPWD, "$client_id:$client_secret");
-
-            // Execute cURL session
-            $response = curl_exec($ch);
-
-            // Check for errors
-            if ($response === false) {
-                $errorMessage = curl_error($ch);
-                // Handle the error
-                return response()->json([
-                    "status" => false,
-                    "message" => $errorMessage,
-                ], 500);
-
-            } else {
-                // Close cURL session
-                curl_close($ch);
-
-                // Handle the response
-                $responseData = json_decode($response);
-                // Handle the response data as needed
-
-                
-                if (strtolower($responseData->status) == "completed") {
-
-        
-                    $quote->payment_status = 1;
-                    $quote->spayment_id = "payp_".$orderID;
-                    $quote->save();
-
-                    if ($quote->promo_code != "") {
-                        $promo = PromoCode::where("promo_code", $quote->promo_code)->first();
-                        if ($promo != null) {
-                            $promo->used = $promo->used + 1;
-                            $promo->save();
+                // Log the full response for debugging
+                Log::info('PayPal Capture Details:', $responseData);
+    
+                if (isset($responseData['status']) && strtolower($responseData['status']) == 'completed') {
+    
+                    if ($type === 'ai') {
+                        $document = AiDocument::findOrFail($request->id);
+                        $document->status = 'paid';
+                        $document->paddle_checkout_id = "payp_" . $orderID;
+                        $amount = $responseData['purchase_units'][0]['payments']['captures'][0]['amount']['value'];
+                        $document->amount = $amount;
+    
+                        // Generate PDF from content
+                        $pdf = Pdf::loadView('ai-pdf-template', [
+                            'content' => $document->content,
+                            'title' => $document->prompt,
+                        ]);
+    
+                        $pdfFileName = 'ai_doc_' . now()->timestamp . '.pdf';
+                        $pdfPath = "ai-docs/{$pdfFileName}";
+    
+                        Storage::disk('public')->put($pdfPath, $pdf->output());
+    
+                        $document->pdf_path = $pdfPath;
+    
+                        $document->save();
+    
+                        $emailTemplate = Setting::where('param', 'page[ai_email]')->value('value');
+    
+                        $placeholders = [
+                            '[username]'      => $document->user->name ?? 'Customer',
+                            '[document_link]' => asset('storage/' . $pdfPath),
+                            '[document_title]' => $document->prompt,
+                            '[created_at]'    => $document->created_at->format('F j, Y'),
+                        ];
+    
+                        $finalEmailBody = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate);
+                        Mail::to($document->user->email)->send(new AiDocumentReadyMail($finalEmailBody));
+                    } else {
+                        $quote = Quote::where("id", $request->id)->first();
+                        $quote->payment_status = 1;
+                        $quote->spayment_id = "payp_" . $orderID;
+                        $quote->save();
+    
+                        if ($quote->promo_code != "") {
+                            $promo = PromoCode::where("promo_code", $quote->promo_code)->first();
+                            if ($promo != null) {
+                                $promo->used = $promo->used + 1;
+                                $promo->save();
+                            }
+                        }
+    
+                        // ADJUST TIME
+                        $quote = $this->adjustOrderStartTime($quote);
+    
+                        try {
+                            //WE WILL SEND CONFIRMATION MESSAGE HERE                    
+                            Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
+                        } catch (Exception $ex) {
+                             Log::error('Order Confirmation Email failed: ' . $ex->getMessage());
                         }
                     }
-
-                    // ADJUST TIME
-                    $quote = $this->adjustOrderStartTime($quote);
-
-                    try{
-                         //WE WILL SEND CONFIRMATION MESSAGE HERE                    
-                        Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
-
-                    }catch(Exception $ex){
-
-                    }
-                   
-
-
-               
-
                 }
-
+    
                 return response()->json($responseData, 200);
-
-
-
+            } catch (Exception $e) {
+                Log::error('PayPal Capture Error: ' . $e->getMessage());
+                return response()->json(['error' => 'An internal server error occurred.'], 500);
             }
-
-
         }
 
 

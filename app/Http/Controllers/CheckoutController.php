@@ -3,23 +3,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\OrderConfirmationMail;
-use App\Models\PromoCode;
-use App\Models\Quote;
 use App\Models\User;
+use App\Models\Quote;
 use App\Models\Setting;
+use App\Models\PromoCode;
+use App\Models\AiDocument;
 use Illuminate\Http\Request;
+use App\Mail\VerifyEmailMail;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Mail\OrderConfirmationMail;
+
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+
 use Illuminate\Support\Facades\Http;
 
 use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifyEmailMail;
-use Illuminate\Support\Facades\RateLimiter;
-
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 
 class CheckoutController extends Controller
 {
@@ -28,47 +31,78 @@ class CheckoutController extends Controller
     public function bankPayment(Request $request)
     {
 
+         Log::info("Bank payment request received", [
+            'request' => $request->all(),
+            'user_id' => Auth::id(),
+        ]);
+        
+
         // Save imntent seoartedly
         $validatedData = Validator::make(
             $request->all(),
             [
-                'id' => 'required|exists:quotes,id',
+                'id' => 'required',
+                'type' => 'required|in:quote,ai_document',
             ]
         );
 
-        $quote = Quote::find($request->id);
-
-        // If payment already completed
-        if ($quote->payment_status == 1) {
+        if ($validatedData->fails()) {
             return response()->json([
-                'message' => "Error !",
-            ], 500);
+                'status' => false,
+                'message' => "Validation error",
+                'errors' => $validatedData->errors()
+            ], 400);
         }
 
+        if($request->type == 'quote'){
+            $quote = Quote::find($request->id);
+            if ($quote->payment_status == 1) {
+                return response()->json([
+                    'message' => "Error !",
+                ], 500);
+            }
+            $amount = $quote->update_price;
+            $quote->spayment_id = "bank_" . $quote->policy_number;
+            $policy_number = $quote->policy_number;
+        }else{
+            $aiDoc = AiDocument::find($request->id);
+            if ($aiDoc->status == 'paid') {
+                return response()->json([
+                    'message' => "Error !",
+                ], 500);
+            }
+            $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
+            $amount = floatval($aiPrice);
+            $aiDoc->paddle_checkout_id = "bank_" . $aiDoc->id;
+            $policy_number = $aiDoc->id;
+        }
+           
 
-        $amount = $quote->update_price;
 
-
-        $quote->spayment_id = "bank_" . $quote->policy_number;
-
-        
-        $setn = Setting::where("param", "bank_per_off")->first();
-        if ($setn == null) {
+        $bank_per_off = Setting::where("param", "bank_per_off")->first();
+        if ($bank_per_off == null) {
             $bank_per_off = 0;
         } else {
-            $bank_per_off = $setn->value;
+            $bank_per_off = $bank_per_off->value;
         }
 
         if($bank_per_off > 0){
 
             $amount =  (1 - ($bank_per_off / 100)) * $amount;
             
-            $quote->update_price = $amount;
+            if($request->type == 'quote'){
+                $quote->update_price = $amount;
+            }else{
+                $aiDoc->amount = $amount;
+            }
 
         }
 
-
-        $quote->save();
+        if($request->type == 'quote'){
+            $quote->save();
+        }else{
+            $aiDoc->save();
+        }
 
 
         $setn = Setting::where("param", "bank_name")->first();
@@ -102,7 +136,7 @@ class CheckoutController extends Controller
                 "bank_sort_code" => $bank_sort_code,
                 "bank_account_number" => $bank_account_number,
                 "bank_ref_number" => $bank_ref_number,
-                "policy_number" => $quote->policy_number,
+                "policy_number" => $policy_number,
             ],
             200
         );
@@ -116,21 +150,63 @@ class CheckoutController extends Controller
 
 
 
-    public function confirmed(Request $request, $policy_number)
+    public function bankConfirmed(Request $request, $policy_number)
     {
 
 
         $html = "";
-        
-        $quote = Quote::where("policy_number", $policy_number)->first();
+        $statusPayment = true;
+        if($request->has('type') && $request->type == 'ai'){
+            $aiDoc = AiDocument::where("id", $policy_number)->first();
 
-        if ($quote == null) {
-            abort(500, "Invalid link");
+            if ($aiDoc == null) {
+                $statusPayment = false;
+                abort(500, "Invalid link");
+            }
+
+            $aiDoc->status = 'paid';
+            $amount = Setting::where('param', 'ai_document_price')->value('value');
+            $bank_per_off = Setting::where('param', 'bank_per_off')->value('value') ?? 0;
+            if($bank_per_off > 0){
+                $amount =  floatval($amount) * (1 - ($bank_per_off / 100));
+            } else {
+                $amount = floatval($amount);
+            }
+            $aiDoc->amount = $amount;
+            $aiDoc->paddle_checkout_id = "bank_" . $aiDoc->id;
+    
+            // Generate PDF from content
+            $pdf = Pdf::loadView('ai-pdf-template', [
+                'content' => $aiDoc->content,
+                'title' => $aiDoc->prompt,
+            ]);
+
+            $pdfFileName = 'ai_doc_' . now()->timestamp . '.pdf';
+            $pdfPath = "ai-docs/{$pdfFileName}";
+
+            Storage::disk('public')->put($pdfPath, $pdf->output());
+
+            $aiDoc->pdf_path = $pdfPath;
+
+            $aiDoc->save();
+
+            
+        } else {
+            $quote = Quote::where("policy_number", $policy_number)->first();
+
+            if ($quote == null) {
+                $statusPayment = false;
+                abort(500, "Invalid link");
+            }else{
+               
+                 if($quote->payment_status == 1) $statusPayment = true;
+                 else $statusPayment = false;
+            }
         }
 
 
         // Just return if already done;
-        if ($quote->payment_status == 1) {
+        if ($statusPayment) {
 
             $html = '<div class="text-center alert alert-success py-5 my-3 my-md-5">
                 <i class="far fa-check-circle fa-5x"></i>

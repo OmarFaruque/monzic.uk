@@ -103,6 +103,109 @@
             font-family: 'Roboto', sans-serif !important;
             font-weight: 400 !important;
         }
+        .bank-details {
+    max-width: 600px;
+    margin: auto;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    padding: 2rem;
+  }
+
+  .bank-details h5 {
+    color: #CCC;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .bank-details .detail-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .bank-details .detail-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+  .bank-details .detail-left i.fa {
+    color: var(--gtheme-color);
+  }
+
+  .bank-details .detail-item i.fa-copy {
+    color: #CCC;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .bank-details .detail-item i.fa-copy:hover {
+    transform: scale(1.2);
+  }
+
+  .bank-details .detail-item i.fa-check {
+    color: green;
+    display: none;
+  }
+
+  .bank-details .label {
+    font-weight: 600;
+    margin-right: 0.5rem;
+    color: #333;
+  }
+
+  .bank-details .value {
+    color: #555;
+    word-break: break-word;
+  }
+
+  .bank-details .note {
+    font-size: 0.875rem;
+    color: #888;
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+
+  .info-message {
+    text-align: center;
+    background-color: rgba(0, 123, 255, 0.05);
+    border: 1px solid var(--gtheme-color);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    color: #333;
+    margin-top: 2rem;
+    font-size: 0.95rem;
+  }
+
+  .confirm-btn {
+    display: block;
+    margin: 1rem auto 0;
+    background-color: var(--gtheme-color);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .confirm-btn:hover {
+    filter: brightness(0.95);
+  }
+  .transfer-amount {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-top: -1rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+.transfer-amount strong {
+  color: var(--gtheme-color);
+}
     </style>
 @endpush
 
@@ -117,7 +220,7 @@
 
 
 
-        <div class="col-12 col-md-7 order-1 order-md-0">
+        <div class="col-12 col-md-7 order-1 order-md-0" id="payment_cal_path">
 
             <div class=" mb-4">
                 <h3 class="cart_header mt-2">INFORMATION</h3>
@@ -172,7 +275,7 @@
 
             <hr>
 
-            <h3>Amount: <span class="ms-5">£<span class="cpw_amount">{{ number_format($quote?->cpw, 2) }}</span></span>
+            <h3>Amount: <span class="ms-5">£<span class="cpw_amount">{{ number_format($quote?->cpw ?? $aiPrice, 2) }}</span></span>
             </h3>
 
             <form class="mb-4" onsubmit="applyPromoCode(event)">
@@ -292,6 +395,15 @@
             </div>
             @endguest
 
+
+            @php
+            $checkout_checkbox = explode('||', $checkout_checkbox);
+            @endphp
+            @foreach($checkout_checkbox as $box)
+            @if(! empty(trim($box)))
+            <div class="mt-3 text-left d-flex gap-2"><input class="ckbox" required autocomplete="off" type="checkbox"> <div style="flex:1"> {!! $box !!}  <span class="text-danger">*</span></div></div>
+            @endif
+            @endforeach
 
             <div class="text-end mt-3" style="max-width: 450px;"><button onclick="completePayment()" class="btn  btn-primary pay_btn py-3 px-4"> Complete Payment</button></div>
 
@@ -557,6 +669,7 @@
         }
 
         const QUOTATION_ID = {{ $quote?->id ?? $aiDoc?->id }};
+        const ITEM_TYPE = '{{ $quote ? 'quote' : 'ai_document' }}';
         const CPW_AMOUNT_DEFAULT = {{ $quote?->cpw ?? $aiPrice }};
         let CPW_AMOUNT = {{ $quote?->cpw ?? $aiPrice }};
 
@@ -675,6 +788,19 @@
             
             }
 
+            @if($show_bank)
+            $("#payment_areas").append(`
+                <div class="payment_area bank_parea">
+                    <div class="choice-radio"><label for="choice_bank"><input type="radio" name="choice" autocomplete="off" id="choice_bank" value="bank"><i></i>  <span><img src="/img/icons/bank.png"> Bank Transfer <span style="font-size:12px"> @if($bank_per_off > 0)
+                        ( {{$bank_per_off}}% off )
+                        @endif </span></span></label></div>
+                    <div class="payment_body  d-none" id="bank-container">
+                        This will provide you with account details where the payment will be manually approved.
+                    </div>
+                </div>
+            `);
+            @endif
+
             $(`input[name="choice"]`).on('change', function(){
                 $(".payment_body").addClass('d-none');
                 let choice = $(`input[name="choice"]:checked`).val();
@@ -716,7 +842,125 @@
 
             let choice = $(`input[name="choice"]:checked`).val();
             try {
-                if(choice == "card"){
+                if(choice == "bank"){
+                showProgress('Generation invoice');
+
+                $.ajax({
+                    type: "POST",
+                    url:   "/checkout-bank-payment",
+                    data: {id: QUOTATION_ID, type: ITEM_TYPE},
+                    dataType: 'json',
+                    success: function(data){
+
+
+                        console.log('bank payment return data', data);
+
+                        let this_amount = parseFloat(CPW_AMOUNT).toFixed(2);
+
+                        let bank_per_off = parseInt({{ $bank_per_off ?? 0 }});
+                        if(bank_per_off > 0){
+                            this_amount =  this_amount * (1 - (bank_per_off / 100));
+                        } 
+
+
+                        let html = `<div class="bank-details">
+                                    <h5>Bank Transfer Details</h5>
+
+                                    <p class="transfer-amount">Amount to Transfer: <strong>£${this_amount}</strong></p>
+
+                                    <div class="detail-item">
+                                        <div class="detail-left">
+                                        <i class="fas fa-user me-2"></i>
+                                        <span class="label">Account Name:</span>
+                                        <span class="value copy-text">${data.bank_name}</span>
+                                        </div>
+                                        <i class="fas fa-copy copy-btn"></i>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <div class="detail-left">
+                                        <i class="fas fa-code-branch me-2"></i>
+                                        <span class="label">Sort Code:</span>
+                                        <span class="value copy-text">${data.bank_sort_code}</span>
+                                        </div>
+                                        <i class="fas fa-copy copy-btn"></i>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <div class="detail-left">
+                                        <i class="fas fa-hashtag me-2"></i>
+                                        <span class="label">Account Number:</span>
+                                        <span class="value copy-text">${data.bank_account_number}</span>
+                                        </div>
+                                        <i class="fas fa-copy copy-btn"></i>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <div class="detail-left">
+                                        <i class="fas fa-pen me-2"></i>
+                                        <span class="label">Reference:</span>
+                                        <span class="value copy-text">${data.bank_ref_number}-${data.policy_number}</span>
+                                        </div>
+                                        <i class="fas fa-copy copy-btn"></i>
+                                    </div>
+
+                                    <div class="note d-none">
+                                        Please use the reference exactly as shown when making your transfer.
+                                    </div>
+
+                                    <div class="info-message">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        {{$bank_infor_text}}
+                                    </div>
+
+                                    <form action="/bank-confirm-payment/${data.policy_number}" method="GET">
+                                        <input type="hidden" name="type" value="{{isset($aiDoc) ? 'ai' : 'quote'}}">
+                                        <div class="mt-3 text-left d-flex gap-2"><input required autocomplete="off" type="checkbox"> <div style="flex:1"> I confirm that I have sent the payment with the exact reference shown  <span class="text-danger">*</span></div></div>
+
+                                        <div class="mt-3 text-left d-flex gap-2"><input required autocomplete="off" type="checkbox"> <div style="flex:1"> I acknowledge that the payment has to be manually approved, which may take up to 12 hours until the policy is active.  <span class="text-danger">*</span></div></div>
+
+                                        
+                                    <button class="confirm-btn">
+                                        <i class="fas fa-check-circle me-1"></i> Confirm Order
+                                    </button>
+                                   </form> 
+                                </div>`;
+
+                                $("#payment_cal_path").html(html);
+
+
+                                closeProgress();
+
+                                $("#payment_cal_path")[0].scrollIntoView();
+
+
+                        $('.copy-btn').click(function () {
+                            const value = $(this).closest('.detail-item').find('.copy-text').text().trim();
+                            const tempInput = $('<input>');
+                            $('body').append(tempInput);
+                            tempInput.val(value).select();
+                            document.execCommand('copy');
+                            tempInput.remove();
+                            // Feedback animation
+                            const icon = $(this);
+                            icon.removeClass('fa-copy').addClass('fa-check');
+                            setTimeout(() => {
+                                icon.removeClass('fa-check').addClass('fa-copy');
+                            }, 1000);
+                        });
+
+                        
+
+                    
+                    },
+                    error: function (xhr, status, error) {
+                        closeProgress();
+                        render_errors(JSON.parse(xhr.responseText), 'toast', parent);
+                    }
+                });
+
+            }
+                else if(choice == "card"){
                     const verificationDetails = {
                     amount: this_amount,
                     billingContact: {
@@ -775,7 +1019,7 @@
                     } else {
                         showProgress('Payment Confirmed');
                         const data = await res.json();
-                        console.log('Success:', data);
+                        
 
                         let baseUrl = @json(url('/confirmed'));
                         // let confirmUrl = baseUrl + "?id=" + QUOTATION_ID + {{ $aiDoc ? ' +"&type=ai"' : '' }};

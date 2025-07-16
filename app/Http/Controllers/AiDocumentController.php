@@ -154,6 +154,7 @@ class AiDocumentController extends Controller
                 
                 Session::forget('quotation_id');
                 Session::put('aidocument_id', $document->id);
+                Session::forget('quotation_id'); // Clear the other ID
             }
 
 

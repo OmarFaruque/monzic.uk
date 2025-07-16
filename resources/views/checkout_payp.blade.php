@@ -103,6 +103,111 @@
             font-family: 'Roboto', sans-serif !important;
             font-weight: 400 !important;
         }
+        
+        .bank-details {
+    max-width: 600px;
+    margin: auto;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    padding: 2rem;
+  }
+
+  .bank-details h5 {
+    color: #CCC;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .bank-details .detail-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .bank-details .detail-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+  .bank-details .detail-left i.fa {
+    color: var(--gtheme-color);
+  }
+
+  .bank-details .detail-item i.fa-copy {
+    color: #CCC;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .bank-details .detail-item i.fa-copy:hover {
+    transform: scale(1.2);
+  }
+
+  .bank-details .detail-item i.fa-check {
+    color: green;
+    display: none;
+  }
+
+  .bank-details .label {
+    font-weight: 600;
+    margin-right: 0.5rem;
+    color: #333;
+  }
+
+  .bank-details .value {
+    color: #555;
+    word-break: break-word;
+  }
+
+  .bank-details .note {
+    font-size: 0.875rem;
+    color: #888;
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+
+  .info-message {
+    text-align: center;
+    background-color: rgba(0, 123, 255, 0.05);
+    border: 1px solid var(--gtheme-color);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    color: #333;
+    margin-top: 2rem;
+    font-size: 0.95rem;
+  }
+
+  .confirm-btn {
+    display: block;
+    margin: 1rem auto 0;
+    background-color: var(--gtheme-color);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .confirm-btn:hover {
+    filter: brightness(0.95);
+  }
+  .transfer-amount {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-top: -1rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+.transfer-amount strong {
+  color: var(--gtheme-color);
+}
+
     </style>
 @endpush
 
@@ -117,7 +222,7 @@
 
 
 
-        <div class="col-12 col-md-7 order-1 order-md-0">
+        <div class="col-12 col-md-7 order-1 order-md-0" id="payment_cal_path">
 
             <div class=" mb-4">
                 <h3 class="cart_header mt-2">INFORMATION</h3>
@@ -172,13 +277,13 @@
 
             <hr>
 
-            <h3>Amount: <span class="ms-5">£<span class="cpw_amount">{{ number_format($quote->cpw, 2) }}</span></span>
+            <h3>Amount: <span class="ms-5">£<span class="cpw_amount">{{ number_format($quote?->cpw ?? $aiPrice, 2) }}</span></span>
             </h3>
 
             <form class="mb-4" onsubmit="applyPromoCode(event)">
                 <label class="mt-3">Have promo code?</label>
                 <div class="input-group" style="max-width:450px">
-                    <input autocomplete="off" value="{{ $quote->promo_code }}" class="form-control" id="promo_code"
+                    <input autocomplete="off" value="{{ $quote?->promo_code }}" class="form-control" id="promo_code"
                         placeholder="Promo code">
                     <div class="input-group-append" placeholder="Code">
                         <button class="sbutton input-group-text btn btn-secondary px-5">Apply</button>
@@ -283,11 +388,32 @@
                         </style>
                         <div id="payment_areas">
 
+                            <div class="payment_area nowp_parea">
+                                <div class="choice-radio"><label for="choice_nowp"><input checked type="radio" autocomplete="off" name="choice" id="choice_nowp" value="nowp"><i></i>  <span> &nbsp; Paypal
+                                </span></label></div>
+                                <div class="payment_body bag892" id="nowp-container">
+                                    Click the button below to complete payment. This will redirect you to Stripe checkout page.  
 
+                                </div>
+                            </div>
+
+                            
+                            
                         </div>
+
                     
 
                     </div>
+                        @if($show_bank)
+                            <div class="payment_area bank_parea">
+                                <div class="choice-radio"><label for="choice_bank"><input type="radio" name="choice" autocomplete="off" id="choice_bank" value="bank"><i></i>  <span><img src="/img/icons/bank.png"> Bank Transfer <span style="font-size:12px"> @if($bank_per_off > 0)
+                                    ( {{$bank_per_off}}% off )
+                                    @endif </span></span></label></div>
+                                <div class="payment_body  d-none" id="bank-container">
+                                    This will provide you with account details where the payment will be manually approved.
+                                </div>
+                            </div>
+                        @endif
                     <div id="payment_error" class="payment_error">
                         <!-- Display an error message to your customers here -->
                     </div>
@@ -306,104 +432,12 @@
         <div class="col-12 col-md-5 order-0 order-md-1">
 
             <div id="cfw-cart-summary" class="cart_summary" role="complementary">
-                <div id="cfw-cart-summary-content">
-                    <h3 class="cart_header">
-                        YOUR QUOTE </h3>
-                    <hr>
-                    <div class="d-block d-md-none mb-3"><a class="view_summ_action">View Summary Details <i
-                                class="fa fa-caret-down"></i></a></div>
-
-                    <div id="cfw-checkout-before-order-review"></div>
-                    <div class="d-none d-md-block  quotation_summ">
-                        <table id="cfw-cart" class="cfw-module">
-                            <tbody>
-                                <tr class="cart-item-row cart-item-f4bc63535943868b6eab0ed53bff19e0 cart_item">
-
-
-
-                                    <th class="cfw-cart-item-description">
-
-                                        <div class="cfw-cart-item-data">
-                                            <div class="variationx">
-                                                <div class="dt">Registration Number:</div>
-                                                <div class="dd">{{ $quote->reg_number }}</div>
-                                                <div class="dt">Vehicle Make:</div>
-                                                <div class="dd">{{ $quote->vehicle_make }}</div>
-                                                <div class="dt">Vehicle Model:</div>
-                                                <div class="dd">{{ $quote->vehicle_model }}</div>
-                                                <div class="dt">Engine CC:</div>
-                                                <div class="dd">{{ $quote->engine_cc }}</div>
-                                                <div class="dt">Start Date:</div>
-                                                <div class="dd">{{ date('d-m-Y', strtotime($quote->start_date)) }}
-                                                </div>
-                                                <div class="dt">Start Time:</div>
-                                                <div class="dd">{{ date('h:m a', strtotime($quote->start_date .' '.$quote->start_time)) }}</div>
-                                                <div class="dt">End Date:</div>
-                                                <div class="dd">{{ date('d-m-Y', strtotime($quote->end_date)) }}</div>
-                                                <div class="dt">End Time:</div>
-                                                <div class="dd">{{ date('h:m a', strtotime($quote->end_date .' '.$quote->end_time))  }}</div>
-                                                <div class="dt">Date of Birth:</div>
-                                                <div class="dd">{{ date('d-m-Y', strtotime($quote->date_of_birth)) }}
-                                                </div>
-                                                <div class="dt">Reason:</div>
-                                                <div class="dd">{{ $quote->cover_reason }}</div>
-                                                <div class="dt">Name(s):</div>
-                                                <div class="dd">{{ $quote->title }} {{ $quote->first_name }} {{ $quote->middle_name }} {{ $quote->last_name }}</div>
-                                                <div class="dt">Address:</div>
-                                                <div class="dd">{{ $quote->address }}</div>
-                                                <div class="dt">Postcode:</div>
-                                                <div class="dd">{{ $quote->postcode }}</div>
-                                                <div class="dt">Occupation:</div>
-                                                <div class="dd">{{ $quote->occupation }}</div>
-                                                <div class="dt">Licence Type:</div>
-                                                <div class="dd">{{ $quote->licence_type }}</div>
-                                                <div class="dt">Licence Held Duration:</div>
-                                                <div class="dd">{{ $quote->licence_held_duration }}</div>
-                                                <div class="dt">Vehicle Value:</div>
-                                                <div class="dd">{{ $quote->vehicle_type }}</div>
-                                            </div>
-                                        </div>
-                                        <div class="cfw_cart_item_after_data">
-                                        </div>
-                                    </th>
-
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div id="cfw-totals-list" class="cfw-module d-none d-md-block  quotation_summ">
-                        <table class="cfw-module table">
-
-                            <tbody>
-                                <tr class="cart-subtotal">
-                                    <th>Subtotal</th>
-                                    <td><span class="woocommerce-Price-amount amount"><bdi><span
-                                                    class="woocommerce-Price-currencySymbol">£</span><span
-                                                    class="cpw_subtotal">{{ number_format($quote->cpw, 2) }}</span></bdi></span>
-                                    </td>
-                                </tr>
-                                <tr class="cart-discount d-none">
-                                    <th>Discount</th>
-                                    <td><span class="woocommerce-Price-amount amount"><bdi><span
-                                                    class="woocommerce-Price-currencySymbol">£</span><span
-                                                    class="cpw_discount"></span></bdi></span>
-                                    </td>
-                                </tr>
-                                <tr class="order-total">
-                                    <th>Total</th>
-                                    <td><strong><span class="woocommerce-Price-amount amount"><bdi><span
-                                                        class="woocommerce-Price-currencySymbol">£</span><span
-                                                        class="cpw_total">{{ number_format($quote->cpw, 2) }}</span></bdi></span></strong>
-                                    </td>
-                                </tr>
-
-
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
+                @if ($quote)
+                    <x-quote-summery :quote="$quote" />
+                @endif
+                @if ($aiDoc)
+                    <x-ai-summery :aiDoc="$aiDoc" :aiPrice="$aiPrice" />
+                @endif
             </div>
 
 
@@ -649,9 +683,10 @@
             }, 2000);
         }
 
-        const QUOTATION_ID = {{ $quote->id }};
-        const CPW_AMOUNT_DEFAULT = {{ $quote->cpw }};
-        let CPW_AMOUNT = {{ $quote->cpw }};
+        const QUOTATION_ID = {{ $quote?->id ?? $aiDoc?->id }};
+        const CPW_AMOUNT_DEFAULT = {{ $quote?->cpw ?? $aiPrice }};
+        let CPW_AMOUNT = {{ $quote?->cpw ?? $aiPrice }};
+        const ITEM_TYPE = '{{ $quote ? 'quote' : 'ai_document' }}';
 
         let CLIENT_SECRET = "";
 
@@ -691,6 +726,20 @@
             }
             setUpPayment();
 
+           $(`input[name="choice"]`).on('change', function(){
+               $(".payment_body").addClass('d-none');
+               let choice = $(`input[name="choice"]:checked`).val();
+                if(choice == "bank"){
+                     $(".pay_btn").parent().removeClass('d-none');
+                }else{
+                        $(".pay_btn").parent().addClass('d-none');
+                }
+
+               if(choice != "google"){  
+                   $(`input[name="choice"]:checked`).closest(".payment_area").find(".payment_body").removeClass('d-none');
+               }
+           });
+
         }, 2000);
         
 
@@ -705,8 +754,6 @@
 
             let this_amount = parseFloat(CPW_AMOUNT).toFixed(2);
 
-            $("#payment_areas").html('');
-
             
             paypal.Buttons({
             locale: 'en_US',
@@ -716,8 +763,8 @@
                 shape: 'pill',
             },
             // Set up a payment
-            createOrder: async function () {
-                
+            createOrder: async function (data, actions) {
+
                 if ($("#new_email").length) {
                     await userAuthentication();
                 }
@@ -745,6 +792,7 @@
                     body: JSON.stringify({
                         action: "create_order",
                         id: QUOTATION_ID,
+                        type: @json($quote? 'quote' : 'ai')
                     }),
                 })
                 .then(response => response.json())
@@ -758,67 +806,44 @@
                 });
             },
             onApprove: function (data, actions) {
-                console.log(data);
-                let fdata = {
-                    action: "capture_order",
-                    orderID: data.orderID,
-                    id: QUOTATION_ID
-
-                };
                 showProgress('Please wait');
-                return fetch(paypalUrl, {
-                    method: "POST",
-                    headers: {
-                    "Content-Type": "application/json",
-                    'X-CSRF-TOKEN': THIS_CFR_TOKEN
-                    },
-                    body: JSON.stringify(fdata)
-                })
-                .then((response) => response.json())
-                .then((orderData) => {
-
-                    closeProgress();
-
-                    const errorDetail = orderData?.details?.[0];
-
-                    if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
-                        // (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
-                        // recoverable state, per
-                        // https://developer.paypal.com/docs/checkout/standard/customize/handle-funding-failures/
-                        return actions.restart();
-                    } else if (errorDetail) {
-                        // (2) Other non-recoverable errors -> Show a failure message
-                        throw new Error(
-                            `${errorDetail.description} (${orderData.debug_id})`
-                        );
-
-                    } else if (!orderData.purchase_units) {
-                        throw new Error(JSON.stringify(orderData));
-                    } else {
-
-                        window.location.href = "{{ url('/confirmed') }}" + "?id=" + QUOTATION_ID;
-
-                    }
-
-                    // Successful capture! For dev/demo purposes:
-                    // console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
-                    // const transaction = orderData.purchase_units[0].payments.captures[0];
-                    // $('#payment_form_parent').html(paypalSuccessMsg);
-                    // $('#payment_form_parent')[0].scrollIntoView();
-
-
-                })
-                .catch(error => {
-                    
-                    closeProgress();
-
-                    // Handle error response
-                    console.error('There was an error!', error);
-                    // Access the error response as JSON if it exists
-                    showError(error.message || error.toString());
-
+                return actions.order.capture().then(function (details) {
+                    let fdata = {
+                        action: "capture_order",
+                        orderID: data.orderID,
+                        id: QUOTATION_ID,
+                        type: @json($quote? 'quote' : 'ai'),
+                        details: details
+                    };
+                    return fetch(paypalUrl, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            'X-CSRF-TOKEN': THIS_CFR_TOKEN
+                        },
+                        body: JSON.stringify(fdata)
+                    })
+                    .then((response) => response.json())
+                    .then((orderData) => {
+                        closeProgress();
+                        const errorDetail = orderData?.details?.[0];
+                        if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
+                            return actions.restart();
+                        } else if (errorDetail) {
+                            throw new Error(
+                                `${errorDetail.description} (${orderData.debug_id})`
+                            );
+                        } else {
+                            let baseUrl = @json(url('/confirmed'));
+                            let confirmUrl = baseUrl + "?id=" + QUOTATION_ID{!! $aiDoc ? ' + "&type=ai"' : '' !!};
+                            window.location.href = confirmUrl;
+                        }
+                    })
+                    .catch(error => {
+                        closeProgress();
+                        showError(error.message || error.toString());
+                    });
                 });
-            
             },
             onCancel: function (e) {
                 toastr.error("The payment has been cancelled!");
@@ -826,7 +851,7 @@
             onError: function (e) {
             toastr.error("The payment has been cancelled!");
             },
-        }).render('#payment_areas');
+        }).render('#nowp-container');
         
 
 
@@ -837,6 +862,189 @@
        
 
         
+
+        async function completePayment() {
+
+            closeError();
+            closeProgress();
+
+            let ckret = false;
+            $("input.ckbox").each(function(){
+                if(! $(this).prop('checked')){
+                    $(this).trigger('focus');
+                    ckret = true;
+                }
+            });
+            if(ckret){
+                toastr.error('Please agree by checking the box');
+                return;
+            }
+
+            if ($("#new_email").length) {
+                await userAuthentication();
+            }
+
+            // Should be logged in now
+            if ($("#new_email").length) {
+                return;
+            }
+
+            if( ! EMAIL_VERIFICATION_STATE){
+                $("#verifyModal").modal("show");
+                $(".need-verify-msg").addClass('d-none')
+                $(".resend-verify-email").removeClass('d-none');
+                return;
+            }
+
+            
+            let choice = $(`input[name="choice"]:checked`).val();
+
+            if(choice == "bank"){
+                showProgress('Generation invoice');
+
+                $.ajax({
+                    type: "POST",
+                    url:   "/checkout-bank-payment",
+                    data: {id: QUOTATION_ID, type: ITEM_TYPE},
+                    dataType: 'json',
+                    success: function(data){
+
+
+                        
+
+                        let this_amount = parseFloat(CPW_AMOUNT).toFixed(2);
+
+                        let bank_per_off = parseInt({{$bank_per_off}});
+                        if(bank_per_off > 0){
+                            this_amount =  this_amount * (1 - (bank_per_off / 100));
+                        }
+
+
+                        let html = `<div class="bank-details">
+                                    <h5>Bank Transfer Details</h5>
+
+                                    <p class="transfer-amount">Amount to Transfer: <strong>£${this_amount}</strong></p>
+
+                                    <div class="detail-item">
+                                        <div class="detail-left">
+                                        <i class="fas fa-user me-2"></i>
+                                        <span class="label">Account Name:</span>
+                                        <span class="value copy-text">${data.bank_name}</span>
+                                        </div>
+                                        <i class="fas fa-copy copy-btn"></i>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <div class="detail-left">
+                                        <i class="fas fa-code-branch me-2"></i>
+                                        <span class="label">Sort Code:</span>
+                                        <span class="value copy-text">${data.bank_sort_code}</span>
+                                        </div>
+                                        <i class="fas fa-copy copy-btn"></i>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <div class="detail-left">
+                                        <i class="fas fa-hashtag me-2"></i>
+                                        <span class="label">Account Number:</span>
+                                        <span class="value copy-text">${data.bank_account_number}</span>
+                                        </div>
+                                        <i class="fas fa-copy copy-btn"></i>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <div class="detail-left">
+                                        <i class="fas fa-pen me-2"></i>
+                                        <span class="label">Reference:</span>
+                                        <span class="value copy-text">${data.bank_ref_number}-${data.policy_number}</span>
+                                        </div>
+                                        <i class="fas fa-copy copy-btn"></i>
+                                    </div>
+
+                                    <div class="note d-none">
+                                        Please use the reference exactly as shown when making your transfer.
+                                    </div>
+
+                                    <div class="info-message">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        {{$bank_infor_text}}
+                                    </div>
+
+                                    <form action="/bank-confirm-payment/${data.policy_number}">
+                                        <input type="hidden" name="type" value="{{isset($aiDoc) ? 'ai' : 'quote'}}">
+                                        <div class="mt-3 text-left d-flex gap-2"><input required autocomplete="off" type="checkbox"> <div style="flex:1"> I confirm that I have sent the payment with the exact reference shown  <span class="text-danger">*</span></div></div>
+
+                                        <div class="mt-3 text-left d-flex gap-2"><input required autocomplete="off" type="checkbox"> <div style="flex:1"> I acknowledge that the payment has to be manually approved, which may take up to 12 hours until the policy is active.  <span class="text-danger">*</span></div></div>
+
+                                        
+                                    <button class="confirm-btn">
+                                        <i class="fas fa-check-circle me-1"></i> Confirm Order
+                                    </button>
+                                   </form> 
+                                </div>`;
+
+                                $("#payment_cal_path").html(html);
+
+
+                                closeProgress();
+
+                                $("#payment_cal_path")[0].scrollIntoView();
+
+
+                        $('.copy-btn').click(function () {
+                            const value = $(this).closest('.detail-item').find('.copy-text').text().trim();
+                            const tempInput = $('<input>');
+                            $('body').append(tempInput);
+                            tempInput.val(value).select();
+                            document.execCommand('copy');
+                            tempInput.remove();
+                            // Feedback animation
+                            const icon = $(this);
+                            icon.removeClass('fa-copy').addClass('fa-check');
+                            setTimeout(() => {
+                                icon.removeClass('fa-check').addClass('fa-copy');
+                            }, 1000);
+                        });
+
+                        
+
+                    
+                    },
+                    error: function (xhr, status, error) {
+                        closeProgress();
+                        render_errors(JSON.parse(xhr.responseText), 'toast', parent);
+                    }
+                });
+
+            }
+
+            else{
+                showProgress('Please wait...');
+
+                $.ajax({
+                    type: "POST",
+                    url:   "/payment-intent",
+                    data: {id: QUOTATION_ID, type: ITEM_TYPE},
+                    dataType: 'json',
+                    success: function(data){
+                
+                        window.location.href = data.url;    
+                    
+                    },
+                    error: function (xhr, status, error) {
+                        closeProgress();
+                        render_errors(JSON.parse(xhr.responseText), 'toast', parent);
+                    }
+                });
+            }
+
+
+        }
+
+
+
+
+
 
         async function userAuthentication() {
 
