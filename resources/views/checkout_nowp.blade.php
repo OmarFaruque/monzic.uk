@@ -314,7 +314,7 @@
                                 border: 1px solid #333;
                                 border-radius: 50%;
                                 background-color: #FFF;
-                            }
+                            }1
                             .choice-radio input:checked + i{
                                 border: 5px solid #1a78cf;
                                 background-color: #FFF;
@@ -380,7 +380,7 @@
                                 </div>
                             </div>
 
-                            @if($show_bank)
+                            @if($show_bank && $quote)
                             <div class="payment_area bank_parea">
                                 <div class="choice-radio"><label for="choice_bank"><input type="radio" name="choice" autocomplete="off" id="choice_bank" value="bank"><i></i>  <span><img src="/img/icons/bank.png"> Bank Transfer <span style="font-size:12px"> @if($bank_per_off > 0)
                                     ( {{$bank_per_off}}% off )

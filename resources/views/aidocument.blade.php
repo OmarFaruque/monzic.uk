@@ -517,6 +517,13 @@
                 },
                 async loginForm(event){
                     event.preventDefault();
+
+                    let parent = $(event.target).closest('form');
+                    parent.addClass('was-validatedOmarFaruque');
+                    parent.css("opacity", "0.5").css("pointer-events", "none");
+                    var sbutton = parent.find(".sbutton").html(); 
+                    $(".form_error, .formError").remove();
+                    parent.find(".sbutton").html('<span class="fa fa-spin fa-spinner fa-2x"></span> Logging in...');
                     
                     const fdata = {
                         username: this.username,
@@ -549,9 +556,12 @@
                             if(tokenMeta) tokenMeta.setAttribute('content', data.token);
                         }
                     }).catch(async (err) => {
-
+                        
                         if (err.json) {
                             const json = await err.json();
+                            parent.css("opacity", "1").css("pointer-events", "auto");
+                            parent.find(".sbutton").html(sbutton);
+                            render_errors(json, 'toast', parent);
                         } else {
                             toastr.error("Something went wrong.");
                         }

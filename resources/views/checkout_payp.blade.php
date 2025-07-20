@@ -404,7 +404,7 @@
                     
 
                     </div>
-                        @if($show_bank)
+                        @if($show_bank && $quote)
                             <div class="payment_area bank_parea">
                                 <div class="choice-radio"><label for="choice_bank"><input type="radio" name="choice" autocomplete="off" id="choice_bank" value="bank"><i></i>  <span><img src="/img/icons/bank.png"> Bank Transfer <span style="font-size:12px"> @if($bank_per_off > 0)
                                     ( {{$bank_per_off}}% off )

@@ -395,7 +395,7 @@
                                 </div>
                             </div>
 
-                            @if ($show_bank)
+                            @if ($show_bank && $quote)
                                 <div class="payment_area bank_parea">
                                     <div class="choice-radio"><label for="choice_bank"><input type="radio" name="choice"
                                                 autocomplete="off" id="choice_bank" value="bank"><i></i> <span><img

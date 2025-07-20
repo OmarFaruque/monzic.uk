@@ -726,6 +726,8 @@
 
             let this_amount = parseFloat(CPW_AMOUNT).toFixed(2);
 
+            
+
             $("#payment_areas").html('');
 
             if(squarePMethods.includes('card')){
@@ -788,7 +790,7 @@
             
             }
 
-            @if($show_bank)
+            @if($show_bank && $quote)
             $("#payment_areas").append(`
                 <div class="payment_area bank_parea">
                     <div class="choice-radio"><label for="choice_bank"><input type="radio" name="choice" autocomplete="off" id="choice_bank" value="bank"><i></i>  <span><img src="/img/icons/bank.png"> Bank Transfer <span style="font-size:12px"> @if($bank_per_off > 0)
@@ -851,9 +853,6 @@
                     data: {id: QUOTATION_ID, type: ITEM_TYPE},
                     dataType: 'json',
                     success: function(data){
-
-
-                        console.log('bank payment return data', data);
 
                         let this_amount = parseFloat(CPW_AMOUNT).toFixed(2);
 
