@@ -161,6 +161,7 @@ class StripeController extends Controller
             [
                 'id' => 'required',
                 'type' => 'required|in:quote,ai_document',
+                'tip' => 'nullable|numeric|min:0',
             ]
         );
 
@@ -175,6 +176,8 @@ class StripeController extends Controller
             ], 400);
         }
 
+        
+
         if($request->type == 'quote'){
             $quote = Quote::find($request->id);
             if (!$quote) {
@@ -187,11 +190,12 @@ class StripeController extends Controller
                     'client_secret' => "",
                 ]);
             }
-            $amount = intval($quote->update_price * 100);
+            $amount = intval(($quote->update_price) * 100);
             $client_reference_id = $quote->id;
             $order_id = $quote->id;
             $user = $quote->user;
         }else{
+            $tipAmount = $request->input('tip', 0);
             $aiDoc = AiDocument::find($request->id);
             if (!$aiDoc) {
                 return response()->json(['message' => 'AI Document not found.'], 404);
@@ -200,7 +204,8 @@ class StripeController extends Controller
                 return response()->json(['message' => 'This payment has already been confirmed'], 500);
             }
             $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
-            $amount = intval(floatval($aiPrice) * 100);
+
+            $amount = intval((floatval($aiPrice) + $tipAmount) * 100);
             $client_reference_id = $aiDoc->uuid;
             $order_id = $aiDoc->id;
             $user = $aiDoc->user;

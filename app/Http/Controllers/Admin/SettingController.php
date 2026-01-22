@@ -169,12 +169,34 @@ class SettingController extends Controller
             $ai_document_price = $setn->value;
         }
 
+        $setn = Setting::where("param", "ai_document_tips")->first();
+        if ($setn == null) {
+            $ai_document_tips = "";
+        } else {
+            $ai_document_tips = $setn->value;
+        }
+
+
+        $setn = Setting::where("param", "external_redirect_url")->first();
+        if ($setn == null) {
+            $external_redirect_url = "";
+        } else {
+            $external_redirect_url = $setn->value;
+        }
+
+        $setn = Setting::where("param", "external_redirect_status")->first();
+        if ($setn == null) {
+            $external_redirect_status = 0;
+        } else {
+            $external_redirect_status = $setn->value;
+        }
+
 
         
 
 
 
-        return view('admin.settings', ["ai_document_price" => $ai_document_price, "openai_api_key" => $openai_api_key, "expiresVis" => $expiresVis, "backdatedTime" => $backdatedTime, "carsearch_api" => $carsearch_api, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice]);
+        return view('admin.settings', ["ai_document_tips" => $ai_document_tips, "ai_document_price" => $ai_document_price, "openai_api_key" => $openai_api_key, "expiresVis" => $expiresVis, "backdatedTime" => $backdatedTime, "carsearch_api" => $carsearch_api, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "external_redirect_url" => $external_redirect_url, "external_redirect_status" => $external_redirect_status]);
     }
 
 
@@ -408,14 +430,21 @@ class SettingController extends Controller
             $paddle_apikey_live = $setn->value;
         }
 
-        
+        $setn = Setting::where("param", "mollie_api_key")->first();
+        if ($setn == null) {
+            $mollie_api_key = "";
+        } else {
+            $mollie_api_key = $setn->value;
+        }
 
         
 
+        
 
 
 
-        return view('admin.payment-settings', ["paddle_apikey_live" => $paddle_apikey_live, "paddle_client_token_live" => $paddle_client_token_live, "paddle_mode" => $paddle_mode, "paddle_apikey" => $paddle_apikey, "paddle_vendor_id" => $paddle_vendor_id, "payment_gateway" => $payment_gateway, "stripe_public" => $stripe_public, "stripe_secret" => $stripe_secret, "square_app_id" => $square_app_id, "square_access_token" => $square_access_token, "square_loc_id" => $square_loc_id, "square_pmethods" => $square_pmethods, "paypal_client_secret" => $paypal_client_secret, "paypal_client_id" => $paypal_client_id, "now_api_key" => $now_api_key, "now_ipn_secret" => $now_ipn_secret, "bank_name" => $bank_name, "bank_sort_code" => $bank_sort_code, "bank_account_number" => $bank_account_number, "bank_ref_number" => $bank_ref_number, "show_bank" => $show_bank, "nowp_per_off" => $nowp_per_off, "bank_infor_text" => $bank_infor_text, 'bank_per_off' => $bank_per_off, 'checkout_checkbox' => $checkout_checkbox, "stripe_whook_secret" => $stripe_whook_secret, "airwallex_client_id" => $airwallex_client_id, "airwallex_api_key" => $airwallex_api_key, "airwallex_whook_secret" => $airwallex_whook_secret, ]);
+
+        return view('admin.payment-settings', ["mollie_api_key" => $mollie_api_key, "paddle_apikey_live" => $paddle_apikey_live, "paddle_client_token_live" => $paddle_client_token_live, "paddle_mode" => $paddle_mode, "paddle_apikey" => $paddle_apikey, "paddle_vendor_id" => $paddle_vendor_id, "payment_gateway" => $payment_gateway, "stripe_public" => $stripe_public, "stripe_secret" => $stripe_secret, "square_app_id" => $square_app_id, "square_access_token" => $square_access_token, "square_loc_id" => $square_loc_id, "square_pmethods" => $square_pmethods, "paypal_client_secret" => $paypal_client_secret, "paypal_client_id" => $paypal_client_id, "now_api_key" => $now_api_key, "now_ipn_secret" => $now_ipn_secret, "bank_name" => $bank_name, "bank_sort_code" => $bank_sort_code, "bank_account_number" => $bank_account_number, "bank_ref_number" => $bank_ref_number, "show_bank" => $show_bank, "nowp_per_off" => $nowp_per_off, "bank_infor_text" => $bank_infor_text, 'bank_per_off' => $bank_per_off, 'checkout_checkbox' => $checkout_checkbox, "stripe_whook_secret" => $stripe_whook_secret, "airwallex_client_id" => $airwallex_client_id, "airwallex_api_key" => $airwallex_api_key, "airwallex_whook_secret" => $airwallex_whook_secret, ]);
     }
 
 
@@ -485,7 +514,7 @@ class SettingController extends Controller
             ], 400);
         }
 
-        $params = ["quote_php_func", "quote_js_func", "expires_vis", "backdated_time", "payment_gateway", "stripe_public", "stripe_secret", "square_app_id", "square_access_token", "square_loc_id", "square_pmethods", "carsearch_api", "paypal_client_secret", "paypal_client_id", "checkout_notice", "show_checkout_notice", "home_notice", "show_home_notice", "choosen_page_notice", "now_api_key", "now_ipn_secret",  "bank_name", "bank_sort_code", "bank_account_number", "bank_ref_number", "show_bank", "nowp_per_off", "bank_per_off", "bank_infor_text", "checkout_checkbox", "stripe_whook_secret", "airwallex_client_id", "airwallex_api_key", "airwallex_whook_secret"];
+        $params = ["quote_php_func", "quote_js_func", "expires_vis", "backdated_time", "payment_gateway", "stripe_public", "stripe_secret", "square_app_id", "square_access_token", "square_loc_id", "square_pmethods", "carsearch_api", "paypal_client_secret", "paypal_client_id", "checkout_notice", "show_checkout_notice", "home_notice", "show_home_notice", "choosen_page_notice", "now_api_key", "now_ipn_secret",  "bank_name", "bank_sort_code", "bank_account_number", "bank_ref_number", "show_bank", "nowp_per_off", "bank_per_off", "bank_infor_text", "checkout_checkbox", "stripe_whook_secret", "airwallex_client_id", "airwallex_api_key", "airwallex_whook_secret", "external_redirect_url", "external_redirect_status", "mollie_api_key"];
 
 
         if (! in_array($request->param, $params) && strpos($request->param, "page[") === false  && strpos($request->param, "pags[") === false) {
@@ -526,6 +555,20 @@ class SettingController extends Controller
 
 
     public function updateOpenAPISetting(Request $request){
+        
+        if ($request->has('ai_document_tips')) {
+            Setting::updateOrCreate(
+                ['param' => 'ai_document_tips'],
+                ['value' => 'on']
+            );
+        } else {
+            Setting::updateOrCreate(
+                ['param' => 'ai_document_tips'],
+                ['value' => 'off']
+            );
+        }
+        $request->request->remove('ai_document_tips');
+
         // dd($request->all());
         foreach ($request->all() as $param => $value) {
             if($param == '_token') continue;
@@ -623,6 +666,20 @@ class SettingController extends Controller
 
 
         return back()->with('success', 'OpenAI settings updated successfully!');
+    }
+
+
+    public function updateExternalRedirectSetting(Request $request){
+        foreach ($request->all() as $param => $value) {
+            if($param == '_token') continue;
+
+            Setting::updateOrCreate(
+                ['param' => $param],
+                ['value' => $value ?? '']
+            );
+        }
+
+        return back()->with('success', 'External redirect settings updated successfully!');
     }
 
 

@@ -152,9 +152,7 @@ class AirWallexController extends Controller
     {
 
 
-        Log::info('Payment Intent Request', [
-            'request' => $request->all(),
-        ]);
+
 
         // Save imntent seoartedly
         if ($request->has('type') && $request->type == 'ai') {
@@ -184,11 +182,8 @@ class AirWallexController extends Controller
             ], 400);
         }
 
-
-
-
-
         if ($request->has('type') && $request->type == 'ai') {
+            $tipAmount = $request->input('tip', 0);
             $aiDoc = AiDocument::find($request->id);
             if ($aiDoc == null) {
                 return response()->json([
@@ -197,7 +192,9 @@ class AirWallexController extends Controller
                 ], 404);
             }
             $amount = Setting::where("param", "ai_document_price")->pluck('value')->first();
-            $amount = $amount * 100; // Convert to minor units
+            $amount = intval((floatval($amount) + $tipAmount) * 100);
+
+            // $amount = $amount * 100; // Convert to minor units
             $user = $aiDoc->user;
             $merchant_order_id = 'ai_' . $aiDoc->id . '_' . time();
             // $aiDoc->spayment_id = $merchant_order_id;
@@ -227,7 +224,7 @@ class AirWallexController extends Controller
 
         $accessToken = $this->getAirwallexAccessToken(); // Use bearer token from our method
 
-        if (config('app.env') == "locald") {
+        if (config('app.env') == "local") {
 
             $endpoint = 'https://api-demo.airwallex.com/api/v1/pa/payment_intents/create';
         } else {
@@ -317,7 +314,7 @@ class AirWallexController extends Controller
             $intentId = $request->input('id');
 
 
-            if (config('app.env') == "locald") {
+            if (config('app.env') == "local") {
 
                 $url = "https://api-demo.airwallex.com/api/v1/pa/payment_intents/{$intentId}";
             } else {
@@ -452,7 +449,7 @@ class AirWallexController extends Controller
             } else {
 
 
-                $html = '        <div class="text-center alert alert-warning py-5 my-3 my-md-5">
+                $html = '<div class="text-center alert alert-warning py-5 my-3 my-md-5">
             <i class="fa fa-info-circle fa-5x"></i>
             <br>
             <h3>Unknown Request</h3>
@@ -462,7 +459,7 @@ class AirWallexController extends Controller
             }
         } else {
 
-            $html = '        <div class="text-center alert alert-warning py-5 my-3 my-md-5">
+            $html = '<div class="text-center alert alert-warning py-5 my-3 my-md-5">
             <i class="fa fa-info-circle fa-5x"></i>
             <br>
             <h3>Unknown Request</h3>
@@ -491,10 +488,6 @@ class AirWallexController extends Controller
         } else {
             $aSecretKey = $stn->value;
         }
-
-
-
-
 
         $signature = $request->header('x-signature');
         $timestamp = $request->header('x-timestamp');
@@ -568,6 +561,18 @@ class AirWallexController extends Controller
 
                     $aiDoc->status = 'paid';
                     $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
+
+                    // Get the total amount from the webhook data (in major units)
+                    $totalAmount = $data['object']['amount'] / 100;
+
+                    // Calculate tip amount by subtracting the base price from the total amount
+                    $tipAmount = $totalAmount - $aiPrice;
+
+                    // Add tip amount to aiPrice if it's positive
+                    if($tipAmount > 0){
+                        $aiPrice += $tipAmount;
+                    }
+
                     $aiDoc->amount = floatval($aiPrice);
                     $aiDoc->save();
 
@@ -689,7 +694,7 @@ class AirWallexController extends Controller
         $apiKey = $airwallex_api_key;
 
 
-        if (config('app.env') == "locald") {
+        if (config('app.env') == "local") {
 
             $endpoint = 'https://api-demo.airwallex.com/api/v1/authentication/login';
         } else {

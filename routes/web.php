@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\BlackListController;
 use App\Http\Controllers\Admin\AdminTicketController;
 use App\Http\Controllers\AirWallexControllerController;
 use App\Http\Controllers\PaddleController;
+use App\Http\Controllers\MollieController;
 
 Route::get('/', [PageController::class, 'index']);
 Route::get('/customer-terms-of-business', [PageController::class, 'customerTermsOfBusiness']);
@@ -110,7 +111,7 @@ Route::get('/ai-document', [PageController::class, 'aiDocumentShow'])->name('aid
 Route::middleware(['web'])->post('/generate-ai-document', [AiDocumentController::class, 'generateDocument']);
 Route::get('/paddle/payment-success', [AiDocumentController::class, 'paddlePaymentSuccess'])->name('paddle.success');
 Route::get('/paddle/download-document', [AiDocumentController::class, 'aiDocumentDownload'])->name('download.document');
-Route::get('/pp/paddle/token', [AiDocumentController::class, 'getToken']);
+Route::post('/pp/paddle/token', [AiDocumentController::class, 'getTokenWithCreatePriceId']);
 
 // Paddle Controller 
 Route::post('/paddle-checkout-registration', [PaddleController::class, 'checkoutRegistration']);
@@ -151,9 +152,6 @@ Route::match(['get', 'post'], '/stripe-webhook-suizhide', [StripeController::cla
 Route::get('/airwallex/confirmed', [AirWallexController::class, 'confirmed']);
 Route::get('/airwallex/cancelled', [AirWallexController::class, 'cancelled']);
 Route::match(['get', 'post'], '/airwallex/webhook-suizhide', [AirWallexController::class, 'webhook']);
-
-
-
 
 
 
@@ -276,6 +274,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/payment-settings', [SettingController::class, 'paymentSettings']);
         Route::post('/settings', [SettingController::class, 'updateSetting']);
         Route::post('/settings/openapi', [SettingController::class, 'updateOpenAPISetting'])->name('update.OpenAPI');
+        Route::post('/settings/external-redirect', [SettingController::class, 'updateExternalRedirectSetting'])->name('update.externalRedirect');
         Route::post('/evaluate-php-quote', [SettingController::class, 'evaluatePhpQuote']);
 
 
@@ -308,3 +307,9 @@ Route::get('/deploy', function () {
 
     // echo shell_exec('which npm');
 });
+
+Route::post('/mollie/create-payment', [MollieController::class, 'createMolliePayment']);
+Route::post('/mollie/webhook', [MollieController::class, 'mollieWebhook'])->name('mollie.webhook');
+Route::get('/mollie/confirmed', [MollieController::class, 'confirmed'])->name('mollie.confirmed');
+Route::get('/mollie/cancelled', [MollieController::class, 'cancelled'])->name('mollie.cancelled');
+Route::post('/mollie-checkout-registration', [MollieController::class, 'checkoutRegistration']);

@@ -180,14 +180,12 @@ class SquareController extends Controller
         }
         $amount = 0;
         $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
-        if($aiPrice){
-            $amount = $aiPrice;
-            $amount = intval($amount * 100);
-        }
         
 
-
-
+        if($request->has('tip') && is_numeric($request->tip)){
+            $aiPrice += floatval($request->tip);
+        }
+        $amount = floatval($aiPrice) * 100; // Convert to smallest currency unit (pence for GBP)
 
         $squareAccess = Setting::where("param", "square_access_token")->first();
         if ($squareAccess == null) {
@@ -202,10 +200,6 @@ class SquareController extends Controller
         } else {
             $squareLocID = $squareLoc->value;
         }
-
-
-
-
 
 
         if (config('app.env') == "local") {
@@ -277,15 +271,7 @@ class SquareController extends Controller
         }
 
 
-        Log::info('Attempting Square Payment', [
-            'env' => config('app.env'),
-            'aiDocid' => $aiDoc->id,
-            'amount' => $amount,
-            'token' => $paymentToken,
-            'location_id' => $squareLocID,
-            'customer_id' => $customerId,
-        ]);
-        
+
 
         $money = new Money();
         $money->setAmount($amount);
@@ -336,11 +322,6 @@ class SquareController extends Controller
             $payment = $response->getPayment();
             if ($payment->getStatus() == "COMPLETED") {
 
-
-                // Log::info('aQueryPaymentSuccess', [
-                //     'payment' => $payment
-                // ]);
-                
 
                 $spayment_id = $payment->getId();
 
@@ -395,8 +376,6 @@ class SquareController extends Controller
 
             echo json_encode($response->getErrors());
         }
-
-
     }
 
     
@@ -429,9 +408,6 @@ class SquareController extends Controller
         $paymentToken = $request->token;
 
         $quote = Quote::where("id", $request->id)->first();
-
-
-
 
         // Just return if already done;
         if ($quote->payment_status == 1) {
@@ -535,16 +511,6 @@ class SquareController extends Controller
                 $user->save();
             }
         }
-
-
-        Log::info('Attempting Square Payment', [
-            'env' => config('app.env'),
-            'quote_id' => $quote->id,
-            'amount' => $amount,
-            'token' => $paymentToken,
-            'location_id' => $squareLocID,
-            'customer_id' => $customerId,
-        ]);
         
 
         $money = new Money();

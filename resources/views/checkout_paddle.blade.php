@@ -1,5 +1,5 @@
 @php
-    
+
     $isEmailVerified = false;
     if (Auth::check()) {
         // User verified already
@@ -98,116 +98,121 @@
         .auth_modal .modal-content {
             box-shadow: 2px 2px 4px 6px var(--gtheme-color);
         }
-        input, input[type="email"], input[type="text"]{
+
+        input,
+        input[type="email"],
+        input[type="text"] {
             /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important; */
             font-family: 'Roboto', sans-serif !important;
             font-weight: 400 !important;
         }
 
         .bank-details {
-    max-width: 600px;
-    margin: auto;
-    background: #fff;
-    border-radius: 1rem;
-    box-shadow: 0 0 20px rgba(0,0,0,0.05);
-    padding: 2rem;
-  }
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
 
-  .bank-details h5 {
-    color: #CCC;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    text-align: center;
-  }
+        .bank-details h5 {
+            color: #CCC;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
 
-  .bank-details .detail-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
+        .bank-details .detail-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
 
-  .bank-details .detail-left {
-    display: flex;
-    align-items: center;
-    flex: 1;
-  }
-  .bank-details .detail-left i.fa {
-    color: var(--gtheme-color);
-  }
+        .bank-details .detail-left {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
 
-  .bank-details .detail-item i.fa-copy {
-    color: #CCC;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-  }
+        .bank-details .detail-left i.fa {
+            color: var(--gtheme-color);
+        }
 
-  .bank-details .detail-item i.fa-copy:hover {
-    transform: scale(1.2);
-  }
+        .bank-details .detail-item i.fa-copy {
+            color: #CCC;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
 
-  .bank-details .detail-item i.fa-check {
-    color: green;
-    display: none;
-  }
+        .bank-details .detail-item i.fa-copy:hover {
+            transform: scale(1.2);
+        }
 
-  .bank-details .label {
-    font-weight: 600;
-    margin-right: 0.5rem;
-    color: #333;
-  }
+        .bank-details .detail-item i.fa-check {
+            color: green;
+            display: none;
+        }
 
-  .bank-details .value {
-    color: #555;
-    word-break: break-word;
-  }
+        .bank-details .label {
+            font-weight: 600;
+            margin-right: 0.5rem;
+            color: #333;
+        }
 
-  .bank-details .note {
-    font-size: 0.875rem;
-    color: #888;
-    margin-top: 1.5rem;
-    text-align: center;
-  }
+        .bank-details .value {
+            color: #555;
+            word-break: break-word;
+        }
 
-  .info-message {
-    text-align: center;
-    background-color: rgba(0, 123, 255, 0.05);
-    border: 1px solid var(--gtheme-color);
-    padding: 1rem;
-    border-radius: 0.5rem;
-    color: #333;
-    margin-top: 2rem;
-    font-size: 0.95rem;
-  }
+        .bank-details .note {
+            font-size: 0.875rem;
+            color: #888;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
 
-  .confirm-btn {
-    display: block;
-    margin: 1rem auto 0;
-    background-color: var(--gtheme-color);
-    color: #fff;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
+        .info-message {
+            text-align: center;
+            background-color: rgba(0, 123, 255, 0.05);
+            border: 1px solid var(--gtheme-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: #333;
+            margin-top: 2rem;
+            font-size: 0.95rem;
+        }
 
-  .confirm-btn:hover {
-    filter: brightness(0.95);
-  }
-  .transfer-amount {
-  text-align: center;
-  font-size: 1.1rem;
-  margin-top: -1rem;
-  margin-bottom: 1.5rem;
-  color: #333;
-}
-.transfer-amount strong {
-  color: var(--gtheme-color);
-}
+        .confirm-btn {
+            display: block;
+            margin: 1rem auto 0;
+            background-color: var(--gtheme-color);
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
 
+        .confirm-btn:hover {
+            filter: brightness(0.95);
+        }
+
+        .transfer-amount {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: -1rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .transfer-amount strong {
+            color: var(--gtheme-color);
+        }
     </style>
     <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
 @endpush
@@ -218,11 +223,7 @@
 
 
 @section('content')
-    <div class="row py-5">
-
-
-
-
+    <div class="row py-5" x-data="{ tipAmount: 0 }">
         <div class="col-12 col-md-7 order-1 order-md-0" id="payment_cal_path">
 
             <div class=" mb-4">
@@ -232,7 +233,8 @@
                     @auth('web')
                         <div style="font-size: 16px;">Welcome back,
                             <b>{{ auth('web')->user()->first_name . ' ' . auth('web')->user()->last_name }}</b>
-                            ({{ auth('web')->user()->email }})</div>
+                            ({{ auth('web')->user()->email }})
+                        </div>
                     @endauth
                 </div>
 
@@ -247,11 +249,11 @@
                                 id="new_email" placeholder="Email Address">
                             <label for="new_email">Email Address</label>
                         </div>
-                            <input type="hidden" value="{{$quote?->first_name}}"  id="new_first_name">
-                            <input type="hidden" value="{{$quote?->last_name}}"  id="new_last_name">
+                        <input type="hidden" value="{{ $quote?->first_name }}" id="new_first_name">
+                        <input type="hidden" value="{{ $quote?->last_name }}" id="new_last_name">
 
-                       
-                                <div class="py-2" style="font-size: 16px;">If you do not have an account, we will create one for you
+
+                        <div class="py-2" style="font-size: 16px;">If you do not have an account, we will create one for you
                         </div>
                     </div>
                 @endguest
@@ -259,16 +261,17 @@
 
 
                 <input type="hidden" value="{{ auth('web')->check() ? auth('web')->user()->email : '' }}" readonly
-                    type="" class="form-control verify_email_address" readonly id="user_email" placeholder="Email Address">
+                    type="" class="form-control verify_email_address" readonly id="user_email"
+                    placeholder="Email Address">
                 <br>
                 <input type="hidden"
                     value="{{ auth('web')->check() ? auth('web')->user()->first_name . ' ' . auth('web')->user()->last_name : '' }}"
                     readonly type="" class="form-control" readonly id="user_name" placeholder="Name">
-                
-                <input type="hidden"
-                    value="{{ auth('web')->check() ? auth('web')->user()->first_name:'' }}"  readonly id="user_first_name">
-                <input type="hidden"
-                    value="{{ auth('web')->check() ? auth('web')->user()->last_name : '' }}"  readonly id="user_last_name">
+
+                <input type="hidden" value="{{ auth('web')->check() ? auth('web')->user()->first_name : '' }}" readonly
+                    id="user_first_name">
+                <input type="hidden" value="{{ auth('web')->check() ? auth('web')->user()->last_name : '' }}" readonly
+                    id="user_last_name">
 
             </div>
 
@@ -278,27 +281,39 @@
 
             <hr>
 
-            <h3>Amount: <span class="ms-5">£<span class="cpw_amount">{{ number_format($quote?->cpw ?? $aiPrice, 2) }}</span></span>
-            </h3>
+            <div>
+                <h3>Amount: <span class="ms-5">£<span class="cpw_amount" x-text="(parseFloat({{ number_format($quote?->cpw ?? $aiPrice, 2, '.', '') }}) + parseFloat(tipAmount)).toFixed(2)">{{ number_format($quote?->cpw ?? $aiPrice, 2) }}</span></span></h3>
 
-            <form class="mb-4" onsubmit="applyPromoCode(event)">
-                <label class="mt-3">Have promo code?</label>
-                <div class="input-group" style="max-width:450px">
-                    <input autocomplete="off" value="{{ $quote?->promo_code }}" class="form-control" id="promo_code"
-                        placeholder="Promo code">
-                    <div class="input-group-append" placeholder="Code">
-                        <button class="sbutton input-group-text btn btn-secondary px-5">Apply</button>
+                @if ($aiDoc && $ai_document_tips && $ai_document_tips == 'on')
+                    <div class="mt-2">
+                        <label for="tip-slider" class="form-label fw-semibold">Add a tip (optional):</label>
+                        <div class="d-flex align-items-center">
+                            <input type="range" class="form-range" min="0" max="10" step="1"
+                                id="tip-slider" x-model="tipAmount">
+                            <span class="ms-3" x-text="'£' + tipAmount"></span>
+                        </div>
+                    </div>
+                @endif
+
+                <form class="mb-4" onsubmit="applyPromoCode(event)">
+                    <label class="mt-3">Have promo code?</label>
+                    <div class="input-group" style="max-width:450px">
+                        <input autocomplete="off" value="{{ $quote?->promo_code }}" class="form-control" id="promo_code"
+                            placeholder="Promo code">
+                        <div class="input-group-append" placeholder="Code">
+                            <button class="sbutton input-group-text btn btn-secondary px-5">Apply</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+
+            @if ($show_checkout_notice == 'yes')
+                <div style="max-width: 450px;">
+                    <div class="alert alert-warning">
+                        {!! $checkout_notice !!}
                     </div>
                 </div>
-            </form>
-
-
-            @if($show_checkout_notice == "yes")
-            <div style="max-width: 450px;">
-                <div class="alert alert-warning">
-                    {!! $checkout_notice !!}
-                </div>
-            </div>
             @endif
 
 
@@ -307,16 +322,18 @@
                 <div class="card-body">
                     <div id="express-checkout-element">
                         <style>
-                            .choice-radio{
+                            .choice-radio {
                                 display: flex;
                                 align-items: center;
                             }
-                            .choice-radio input{
+
+                            .choice-radio input {
                                 /* display: none; */
                                 width: 0px;
                                 opacity: 0;
                             }
-                            .choice-radio input + i{
+
+                            .choice-radio input+i {
                                 width: 20px;
                                 height: 20px;
                                 display: inline-block;
@@ -324,15 +341,16 @@
                                 border-radius: 50%;
                                 background-color: #FFF;
                             }
-                            .choice-radio input:checked + i{
+
+                            .choice-radio input:checked+i {
                                 border: 5px solid #1a78cf;
                                 background-color: #FFF;
                                 /* width: 5px;
-                                height: 5px; */
-                                
+                                    height: 5px; */
+
                             }
 
-                            .choice-radio label{
+                            .choice-radio label {
                                 width: 100%;
                                 box-sizing: border-box;
                                 display: flex;
@@ -341,26 +359,30 @@
                                 font-size: 18px;
                                 padding: 20px 5px;
                             }
-                            .choice-radio label span{
+
+                            .choice-radio label span {
                                 flex: 1;
                                 display: inline-block;
                                 /* text-align: center; */
                                 font-size: 18px;
                                 font-weight: 600;
                             }
-                            .choice-radio label span img{
+
+                            .choice-radio label span img {
                                 height: 30px;
                                 display: inline-block;
                                 margin-right: 20px;
                                 margin-left: 15px;
                             }
-                            .payment_area{
+
+                            .payment_area {
                                 border-bottom: 1px solid #d0cece;
                                 border-radius: 10px;
                                 padding: 15px 0px;
 
                             }
-                            .payment_body{
+
+                            .payment_body {
                                 width: 100%;
                                 display: flex;
                                 padding: 10px 20px;
@@ -371,39 +393,45 @@
                                 /* background-color: #f0f9fb; */
                                 color: #000;
                             }
-                            .bag892{
+
+                            .bag892 {
                                 background-color: #e8face
                             }
                         </style>
                         <div id="payment_areas">
 
                             <div class="payment_area nowp_parea">
-                                <div class="choice-radio"><label for="choice_nowp"><input checked type="radio" autocomplete="off" name="choice" id="choice_nowp" value="nowp"><i></i>  <span> <img
-    src="https://logotyp.us/file/paddle.svg"
-    alt="Paddle Logo"
-    width="30"
-    height="auto"
-  /> Paddle
-                                </span></label></div>
+                                <div class="choice-radio"><label for="choice_nowp"><input checked type="radio"
+                                            autocomplete="off" name="choice" id="choice_nowp" value="nowp"><i></i> <span>
+                                            <img src="https://logotyp.us/file/paddle.svg" alt="Paddle Logo" width="30"
+                                                height="auto" /> Paddle
+                                        </span></label></div>
                                 <div class="payment_body bag892" id="nowp-container">
-                                    Click the button below to complete payment. This will redirect you to Paddle checkout page.  
+                                    Click the button below to complete payment. This will redirect you to Paddle checkout
+                                    page.
 
                                 </div>
                             </div>
 
-                            @if($show_bank && $quote)
-                            <div class="payment_area bank_parea">
-                                <div class="choice-radio"><label for="choice_bank"><input type="radio" name="choice" autocomplete="off" id="choice_bank" value="bank"><i></i>  <span><img src="/img/icons/bank.png"> Bank Transfer <span style="font-size:12px"> @if($bank_per_off > 0)
-                                    ( {{$bank_per_off}}% off )
-                                  @endif </span></span></label></div>
-                                <div class="payment_body  d-none" id="bank-container">
-                                    This will provide you with account details where the payment will be manually approved.
+                            @if ($show_bank && $quote)
+                                <div class="payment_area bank_parea">
+                                    <div class="choice-radio"><label for="choice_bank"><input type="radio"
+                                                name="choice" autocomplete="off" id="choice_bank"
+                                                value="bank"><i></i> <span><img src="/img/icons/bank.png"> Bank Transfer
+                                                <span style="font-size:12px">
+                                                    @if ($bank_per_off > 0)
+                                                        ( {{ $bank_per_off }}% off )
+                                                    @endif
+                                                </span></span></label></div>
+                                    <div class="payment_body  d-none" id="bank-container">
+                                        This will provide you with account details where the payment will be manually
+                                        approved.
+                                    </div>
                                 </div>
-                            </div>
                             @endif
-                            
+
                         </div>
-                    
+
                     </div>
                     <div id="payment_error2" class="payment_error">
                         <!-- Display an error message to your customers here -->
@@ -413,32 +441,36 @@
 
 
             @guest('web')
-            <div class="auth_region">
-                <input type="password" style="display: none">
-                <h3 class="cart_header mt-4">CREATE AN ACCOUNT  PASSWORD</h3>
-                <div class="form-floating mb-3">
-                    <input type="password" autocomplete="off" class="form-control" id="new_password"
-                        placeholder="Choose a Password">
-                    <label for="new_password">Password</label>
+                <div class="auth_region">
+                    <input type="password" style="display: none">
+                    <h3 class="cart_header mt-4">CREATE AN ACCOUNT PASSWORD</h3>
+                    <div class="form-floating mb-3">
+                        <input type="password" autocomplete="off" class="form-control" id="new_password"
+                            placeholder="Choose a Password">
+                        <label for="new_password">Password</label>
+                    </div>
+                    <div style="font-size: 14px; color: #777">Your personal data will be used to process your order, support
+                        your experience throughout this website, and for other purposes described in our <a
+                            href="/privacy-policy" target="_blank">privacy policy.</a></div>
                 </div>
-                <div style="font-size: 14px; color: #777">Your personal data will be used to process your order, support
-                    your experience throughout this website, and for other purposes described in our <a
-                        href="/privacy-policy" target="_blank">privacy policy.</a></div>
-            </div>
             @endguest
 
             @php
-            $checkout_checkbox = explode('||', $checkout_checkbox);
+                $checkout_checkbox = explode('||', $checkout_checkbox);
             @endphp
-            @foreach($checkout_checkbox as $box)
-            @if(! empty(trim($box)))
-            <div class="mt-3 text-left d-flex gap-2"><input class="ckbox" required autocomplete="off" type="checkbox"> <div style="flex:1"> {!! $box !!}  <span class="text-danger">*</span></div></div>
-            @endif
+            @foreach ($checkout_checkbox as $box)
+                @if (!empty(trim($box)))
+                    <div class="mt-3 text-left d-flex gap-2"><input class="ckbox" required autocomplete="off"
+                            type="checkbox">
+                        <div style="flex:1"> {!! $box !!} <span class="text-danger">*</span></div>
+                    </div>
+                @endif
             @endforeach
 
-            
 
-            <div class="text-center mt-3"><button onclick="completePayment()" class="btn  btn-primary pay_btn py-3 px-4"> Complete Payment</button></div>
+
+            <div class="text-center mt-3"><button onclick="completePayment()" class="btn  btn-primary pay_btn py-3 px-4">
+                    Complete Payment</button></div>
 
 
 
@@ -496,13 +528,13 @@
                             <form onsubmit="loginForm(event)">
                                 <p>Please enter your login details below.</p>
                                 <div class="form-floating mb-3">
-                                    <input style="padding-top: 32px !important" class="form-control" placeholder="Email address" name="username"
-                                        id="username" required>
+                                    <input style="padding-top: 32px !important" class="form-control"
+                                        placeholder="Email address" name="username" id="username" required>
                                     <label for="username" class="form-label">Email Address</label>
                                 </div>
                                 <div class="form-floating  mb-3">
-                                    <input style="padding-top: 32px !important" type="password" class="form-control" placeholder="Password" id="password"
-                                        required>
+                                    <input style="padding-top: 32px !important" type="password" class="form-control"
+                                        placeholder="Password" id="password" required>
                                     <label for="password" class="form-label">Password</label>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -510,8 +542,8 @@
                                         <input type="checkbox" class="form-check-input" id="rememberme">
                                         <label class="form-check-label" for="rememberme">Remember Me</label>
                                     </div>
-                                    <a href="#"  data-bs-toggle="modal"
-                                    data-bs-target="#fgetModal"  class="text-decoration-none">Forgot
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#fgetModal"
+                                        class="text-decoration-none">Forgot
                                         Password?</a>
                                 </div>
                                 <div class="sbutton"><button type="submit"
@@ -610,24 +642,25 @@
         </div>
     </div>
 
-    @if($show_home_notice == "yes" && ($choosen_page_notice == "checkout" || $choosen_page_notice == "both"))
-    <!-- Modal -->
-    <div class="modal fade" id="noticeModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="noticeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-        <div class="modal-content" style="border-color: var(--gtheme-color)">
-            <div class="modal-header">
-            <h5 class="modal-title" id="noticeModalLabel">Important Notice</h5>
-            </div>
-            <div class="modal-body">
+    @if ($show_home_notice == 'yes' && ($choosen_page_notice == 'checkout' || $choosen_page_notice == 'both'))
+        <!-- Modal -->
+        <div class="modal fade" id="noticeModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+            aria-labelledby="noticeModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content" style="border-color: var(--gtheme-color)">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="noticeModalLabel">Important Notice</h5>
+                    </div>
+                    <div class="modal-body">
 
-                {!! $home_notice !!}
-            </div>
-            <div class="modal-footer">
-            <button id="closeNoticeBtn" type="button" class="btn btn-primary">Close</button>
+                        {!! $home_notice !!}
+                    </div>
+                    <div class="modal-footer">
+                        <button id="closeNoticeBtn" type="button" class="btn btn-primary">Close</button>
+                    </div>
+                </div>
             </div>
         </div>
-        </div>
-    </div>
     @endif
 
 
@@ -639,53 +672,52 @@
     {{-- extra jss files here --}}
 
 
-    
+
 
     <script>
+        let EMAIL_VERIFICATION_STATE = {{ $isEmailVerified ? 'true' : 'false' }};
 
-        let EMAIL_VERIFICATION_STATE = {{ $isEmailVerified? 'true':'false' }};
+        @if ($show_home_notice == 'yes' && ($choosen_page_notice == 'checkout' || $choosen_page_notice == 'both'))
+            document.addEventListener("DOMContentLoaded", function() {
+                const modal = new bootstrap.Modal(document.getElementById('noticeModal'));
+                const closeBtn = document.getElementById('closeNoticeBtn');
 
-        @if($show_home_notice == "yes" && ($choosen_page_notice == "checkout" || $choosen_page_notice == "both"))
-        document.addEventListener("DOMContentLoaded", function () {
-            const modal = new bootstrap.Modal(document.getElementById('noticeModal'));
-            const closeBtn = document.getElementById('closeNoticeBtn');
+                const noticeKey = 'noticeDismissedAt';
+                const durationHours = 2; // Change to 24 for once a day
 
-            const noticeKey = 'noticeDismissedAt';
-            const durationHours = 2; // Change to 24 for once a day
-
-            function shouldShowNotice() {
-                const dismissedAt = localStorage.getItem(noticeKey);
-                if (!dismissedAt) return true;
+                function shouldShowNotice() {
+                    const dismissedAt = localStorage.getItem(noticeKey);
+                    if (!dismissedAt) return true;
 
 
-                const dismissedTime = new Date(dismissedAt);
-                const now = new Date();
-                const diffInMs = now - dismissedTime;
-                const diffInHours = diffInMs / (1000 * 60 * 60);
-                return diffInHours >= durationHours;
-            }
+                    const dismissedTime = new Date(dismissedAt);
+                    const now = new Date();
+                    const diffInMs = now - dismissedTime;
+                    const diffInHours = diffInMs / (1000 * 60 * 60);
+                    return diffInHours >= durationHours;
+                }
 
-            if (shouldShowNotice()) {
-                modal.show();
-            }
+                if (shouldShowNotice()) {
+                    modal.show();
+                }
 
-            closeBtn.addEventListener('click', function () {
-                localStorage.setItem(noticeKey, new Date().toISOString());
-                modal.hide();
+                closeBtn.addEventListener('click', function() {
+                    localStorage.setItem(noticeKey, new Date().toISOString());
+                    modal.hide();
+                });
             });
-        });
         @endif
 
 
-        const backdatedTime = {{$backdatedTime}};
+        const backdatedTime = {{ $backdatedTime }};
         const timeStart = new Date();
 
-        if(backdatedTime == 1){
-            setInterval(function(){
-                let timeCurrent =  new Date();
+        if (backdatedTime == 1) {
+            setInterval(function() {
+                let timeCurrent = new Date();
                 let timeDiff = (timeCurrent - timeStart) / (1000 * 60);
-                
-                if(timeDiff > 60){
+
+                if (timeDiff > 60) {
                     alert("Page expired. Please fill form again");
                     window.location.href = "/order/get-quote";
                 }
@@ -693,12 +725,13 @@
             }, 2000);
         }
         setTimeout(() => {
-           
-            $(`input[name="choice"]`).on('change', function(){
+
+            $(`input[name="choice"]`).on('change', function() {
                 $(".payment_body").addClass('d-none');
                 let choice = $(`input[name="choice"]:checked`).val();
-                if(choice != "google"){  
-                    $(`input[name="choice"]:checked`).closest(".payment_area").find(".payment_body").removeClass('d-none');
+                if (choice != "google") {
+                    $(`input[name="choice"]:checked`).closest(".payment_area").find(".payment_body")
+                        .removeClass('d-none');
                 }
             });
 
@@ -714,7 +747,7 @@
         let THIS_CFR_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 
-        
+
         function showProgress(message) {
             $("#payment_indicator p").html(message);
             $("#payment_indicator").css('display', 'flex');
@@ -733,18 +766,17 @@
             $(".payment_error").html('');
         }
 
-        
-        function setUpPayment(){
-        }
-        function fetchUpdates(){
-        }
+
+        function setUpPayment() {}
+
+        function fetchUpdates() {}
 
 
 
 
 
 
-        
+
 
 
         async function userAuthentication() {
@@ -754,12 +786,12 @@
             };
 
             $(".form_error").remove();
-            
+
             fdata["new_email"] = $("#new_email").val().trim();
             fdata["first_name"] = $("#new_first_name").val().trim();
             fdata["last_name"] = $("#new_last_name").val().trim();
             fdata["new_password"] = $("#new_password").val().trim();
-        
+
             showProgress('Authenticating Session. Please wait');
 
             try {
@@ -781,24 +813,23 @@
 
                     console.log(errorData);
                     let omessage = "";
-                    if('message' in errorData){
+                    if ('message' in errorData) {
                         omessage += errorData.message;
                     }
-                    if('errors' in errorData){
+                    if ('errors' in errorData) {
                         let errors = errorData.errors;
-                        for(key in errors){
+                        for (key in errors) {
                             omessage += '<br>' + errors[key].join(', ');
                             $(`#${key}`).after(`<div class="form_error">${errors[key].join(', ')}</div>`);
-                            
-                            if($(`#${key}`).length){
+
+                            if ($(`#${key}`).length) {
                                 $(`#${key}`)[0].scrollIntoView();
                             }
                         }
                     }
-                    if(omessage){
+                    if (omessage) {
                         toastr.error(omessage);
-                    }
-                    else{
+                    } else {
                         render_errors(errorData, 'toast', $("body"));
                     }
 
@@ -812,7 +843,7 @@
                     token
                 } = await res.json();
 
-                if (! user_email) {
+                if (!user_email) {
                     closeError();
                     closeProgress();
                     toastr.error(`Error creating account`);
@@ -859,7 +890,7 @@
         }
 
 
-        async function completePayment(){
+        async function completePayment() {
 
 
             closeError();
@@ -874,31 +905,38 @@
                 return;
             }
 
-            if( ! EMAIL_VERIFICATION_STATE){
+            if (!EMAIL_VERIFICATION_STATE) {
                 $("#verifyModal").modal("show");
                 $(".need-verify-msg").addClass('d-none')
                 $(".resend-verify-email").removeClass('d-none');
                 return;
             }
+            
+            let tipSlider = document.querySelector('#tip-slider');
+            let tipAmount = parseFloat(tipSlider ? tipSlider.value : 0);
 
             let choice = $(`input[name="choice"]:checked`).val();
 
-            if(choice == "bank"){
+            if (choice == "bank") {
                 showProgress('Generation invoice');
 
                 $.ajax({
                     type: "POST",
-                    url:   "/checkout-bank-payment",
-                    data: {id: QUOTATION_ID, type: ITEM_TYPE},
+                    url: "/checkout-bank-payment",
+                    data: {
+                        id: QUOTATION_ID,
+                        type: ITEM_TYPE,
+                        tip: tipAmount
+                    },
                     dataType: 'json',
-                    success: function(data){
+                    success: function(data) {
 
                         let this_amount = parseFloat(CPW_AMOUNT).toFixed(2);
 
                         let bank_per_off = parseInt({{ $bank_per_off ?? 0 }});
-                        if(bank_per_off > 0){
-                            this_amount =  this_amount * (1 - (bank_per_off / 100));
-                        } 
+                        if (bank_per_off > 0) {
+                            this_amount = this_amount * (1 - (bank_per_off / 100));
+                        }
 
 
                         let html = `<div class="bank-details">
@@ -948,11 +986,11 @@
 
                                     <div class="info-message">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        {{$bank_infor_text}}
+                                        {{ $bank_infor_text }}
                                     </div>
 
                                     <form action="/bank-confirm-payment/${data.policy_number}" method="GET">
-                                        <input type="hidden" name="type" value="{{isset($aiDoc) ? 'ai' : 'quote'}}">
+                                        <input type="hidden" name="type" value="{{ isset($aiDoc) ? 'ai' : 'quote' }}">
                                         <div class="mt-3 text-left d-flex gap-2"><input required autocomplete="off" type="checkbox"> <div style="flex:1"> I confirm that I have sent the payment with the exact reference shown  <span class="text-danger">*</span></div></div>
 
                                         <div class="mt-3 text-left d-flex gap-2"><input required autocomplete="off" type="checkbox"> <div style="flex:1"> I acknowledge that the payment has to be manually approved, which may take up to 12 hours until the policy is active.  <span class="text-danger">*</span></div></div>
@@ -964,16 +1002,17 @@
                                    </form> 
                                 </div>`;
 
-                                $("#payment_cal_path").html(html);
+                        $("#payment_cal_path").html(html);
 
 
-                                closeProgress();
+                        closeProgress();
 
-                                $("#payment_cal_path")[0].scrollIntoView();
+                        $("#payment_cal_path")[0].scrollIntoView();
 
 
-                        $('.copy-btn').click(function () {
-                            const value = $(this).closest('.detail-item').find('.copy-text').text().trim();
+                        $('.copy-btn').click(function() {
+                            const value = $(this).closest('.detail-item').find('.copy-text').text()
+                                .trim();
                             const tempInput = $('<input>');
                             $('body').append(tempInput);
                             tempInput.val(value).select();
@@ -987,11 +1026,11 @@
                             }, 1000);
                         });
 
-                        
 
-                    
+
+
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         closeProgress();
                         render_errors(JSON.parse(xhr.responseText), 'toast', parent);
                     }
@@ -999,64 +1038,111 @@
 
             } else {
 
-            const res = await fetch('/pp/paddle/token', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-                credentials: 'same-origin',
-            });
-
-            const data = await res.json();
-
-            if (!data.token) {
-                console.error("❌ No Paddle token received");
-                return;
-            }
-            if(data.paddle_mode != 'live'){
-                Paddle.Environment.set("sandbox"); // Remove for live
-            }
-            Paddle.Initialize({
-                token: data.token, 
-                eventCallback: function (event) {
-                    if (event.type === "checkout.error") {
-                        console.error("Paddle Checkout Error:", event);
-                    }
-                }
-            });
-
-
-          
-            var itemsList = [
-                {
-                    priceId: @json($paddle_price_id),
-                    quantity: 1
-                }
-            ];
-
-            try {
-                Paddle.Checkout.open({
-                    settings: {
-                        displayMode: "overlay",
-                        theme: "light",
-                        locale: "en",
-                        successUrl: @json(route('paddle.success', ['q' => $quote?->id ?? $aiDoc?->id]))
+                const res = await fetch('/pp/paddle/token', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
-                    items: itemsList,
-                    customData: {
-                        qid: @json($quote?->id ?? $aiDoc?->id)
-                    },
-                    payment_method_types: ["card"]
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        tip: tipAmount
+                    })
                 });
+
+                const data = await res.json();
+
+                
+
+                if (!data.token) {
+                    console.error("❌ No Paddle token received");
+                    return;
+                }
+                if (data.paddle_mode != 'live') {
+                    Paddle.Environment.set("sandbox"); // Remove for live
+                }
+                Paddle.Initialize({
+                    token: data.token,
+                    eventCallback: function(event) {
+
+                        console.log("Paddle Event:", event);
+                        if (event.name === "checkout.error") {
+                            console.error("Paddle Checkout Error:", event);
+                        }
+
+                        if (event.name === "checkout.completed") {
+                            // you can also send event data to your server via AJAX
+                            fetch("{{ route('paddle.webhook') }}", {
+                                method: 'POST',
+                                 headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                },
+                                credentials: 'same-origin',
+                                body: JSON.stringify(event.data)
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error("Network response was not ok");
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if(data.success){
+                                    let qId = "{{ $quote?->id ?? $aiDoc?->id }}";
+                                    let redirectUrl = "{{ route('paddle.success') }}" + "?q=" + qId;
+
+                                    window.location.href = redirectUrl; // 🔄 redirect
+                                }
+                            })
+                            .catch(error => {
+                                console.error("❌ Error sending success data:", error);
+                            });
+                        }
+
+                    }
+                });
+
+
+
+                var itemsList = [{
+                    priceId: ITEM_TYPE != 'ai_document' ? @json($paddle_price_id) : data.price_id,
+                    quantity: 1
+                }];
+
+                try {
+
+                    let customData = {
+                        tip: tipAmount,
+                        item_type: ITEM_TYPE
+                    };
+
+                    if (ITEM_TYPE === 'ai_document') {
+                        customData.doc_uuid = @json($aiDoc?->uuid);
+                    }
+                    if (ITEM_TYPE === 'quote') {
+                        customData.qid = @json($quote?->id);
+                    }
+
+                    Paddle.Checkout.open({
+                        settings: {
+                            displayMode: "overlay",
+                            theme: "light",
+                            locale: "en"
+                        },
+                        items: itemsList,
+                        customData: customData,
+                        payment_method_types: ["card"]
+                    });
                 } catch (error) {
-                        console.error("❌ Checkout threw error:", error);
+                    console.error("❌ Checkout threw error:", error);
                 }
 
             }
 
         }
-
-
-
     </script>
 @endpush
+// successUrl: @json(route('paddle.success', ['q' => $quote?->id ?? $aiDoc?->id]))

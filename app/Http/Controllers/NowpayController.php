@@ -123,6 +123,7 @@ class NowpayController extends Controller
             $request->all(),
             [
                 'id' => 'required|exists:quotes,id',
+                'tip' => 'nullable|numeric|min:0',
             ]
         );
 
@@ -165,7 +166,8 @@ class NowpayController extends Controller
 
 
 
-        $amount = $quote->update_price;
+        $tipAmount = $request->input('tip', 0);
+        $amount = $quote->update_price + $tipAmount;
 
         $setn = Setting::where("param", "nowp_per_off")->first();
         if ($setn == null) {

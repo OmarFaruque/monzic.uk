@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Console\Scheduling\Schedule;
 use App\Http\Middleware\HandleUnAuthorized;
+use App\Http\Middleware\ExternalRedirectMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'unauth' => HandleUnauthorized::class,
             'unadmin' => HandleUnAdminAuthorized::class,
         ]);
+
+        $middleware->append(ExternalRedirectMiddleware::class);
 
 
         $middleware->redirectGuestsTo(function ($request) {
@@ -52,7 +55,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'stripe-webhook-suizhide',
             'stripe-webhook-suizhide/*',
             'airwallex/webhook-suizhide',
-            'airwallex/webhook-suizhide/*'
+            'airwallex/webhook-suizhide/*',
+            'mollie/webhook',
+            'mollie/webhook/*'
         ]);
 
 

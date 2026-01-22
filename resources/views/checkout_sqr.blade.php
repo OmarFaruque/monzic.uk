@@ -215,7 +215,7 @@
 
 
 @section('content')
-    <div class="row py-5">
+    <div class="row py-5" x-data="{ tipAmount: 0 }">
 
 
 
@@ -275,19 +275,32 @@
 
             <hr>
 
-            <h3>Amount: <span class="ms-5">£<span class="cpw_amount">{{ number_format($quote?->cpw ?? $aiPrice, 2) }}</span></span>
-            </h3>
+            <div>
+                <h3>Amount: <span class="ms-5">£<span class="cpw_amount" x-text="(parseFloat({{ number_format($quote?->cpw ?? $aiPrice, 2, '.', '') }}) + parseFloat(tipAmount)).toFixed(2)">{{ number_format($quote?->cpw ?? $aiPrice, 2) }}</span></span>
+                </h3>
 
-            <form class="mb-4" onsubmit="applyPromoCode(event)">
-                <label class="mt-3">Have promo code?</label>
-                <div class="input-group" style="max-width:450px">
-                    <input autocomplete="off" value="{{ $quote?->promo_code }}" class="form-control" id="promo_code"
-                        placeholder="Promo code">
-                    <div class="input-group-append" placeholder="Code">
-                        <button class="sbutton input-group-text btn btn-secondary px-5">Apply</button>
+
+                @if ($aiDoc && $ai_document_tips && $ai_document_tips == 'on')
+                    <div class="mt-2">
+                        <label for="tip-slider" class="form-label fw-semibold">Add a tip (optional):</label>
+                        <div class="d-flex align-items-center">
+                            <input type="range" class="form-range" min="0" max="10" step="1" id="tip-slider" x-model="tipAmount">
+                            <span class="ms-3" x-text="'£' + tipAmount"></span>
+                        </div>
                     </div>
-                </div>
-            </form>
+                @endif
+
+                <form class="mb-4" onsubmit="applyPromoCode(event)">
+                    <label class="mt-3">Have promo code?</label>
+                    <div class="input-group" style="max-width:450px">
+                        <input autocomplete="off" value="{{ $quote?->promo_code }}" class="form-control" id="promo_code"
+                            placeholder="Promo code">
+                        <div class="input-group-append" placeholder="Code">
+                            <button class="sbutton input-group-text btn btn-secondary px-5">Apply</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
 
 
             <!-- Container for the Card Element -->
@@ -841,6 +854,8 @@
             }
             
 
+            let tipSlider = document.querySelector('#tip-slider');
+            let tipAmount = parseFloat(tipSlider ? tipSlider.value : 0);
 
             let choice = $(`input[name="choice"]:checked`).val();
             try {
@@ -850,7 +865,7 @@
                 $.ajax({
                     type: "POST",
                     url:   "/checkout-bank-payment",
-                    data: {id: QUOTATION_ID, type: ITEM_TYPE},
+                    data: {id: QUOTATION_ID, type: ITEM_TYPE, tip: tipAmount},
                     dataType: 'json',
                     success: function(data){
 
@@ -961,7 +976,7 @@
             }
                 else if(choice == "card"){
                     const verificationDetails = {
-                    amount: this_amount,
+                    amount: this_amount + tipAmount,
                     billingContact: {
                         givenName: $("#user_first_name").val(),
                         familyName: $("#user_last_name").val(),
@@ -981,9 +996,28 @@
                     result = await cardPay.tokenize(verificationDetails);
                 }
                 else if(choice == "google"){
+                    const gpaymentRequest = payments.paymentRequest({
+                        countryCode: 'GB',
+                        currencyCode: 'GBP',
+                        total: {
+                            amount: this_amount + tipAmount,
+                            label: 'Total',
+                        },
+                        buttonType: 'pay'
+                    });
+                    googlePay = await payments.googlePay(gpaymentRequest);
                     result = await googlePay.tokenize();
                 }
                 else if(choice == "apple"){
+                    const apaymentRequest = payments.paymentRequest({
+                        countryCode: 'GB',
+                        currencyCode: 'GBP',
+                        total: {
+                            amount: this_amount + tipAmount,
+                            label: 'Total',
+                        }
+                    });
+                    applePay = await payments.applePay(apaymentRequest);
                     result = await applePay.tokenize();
                 }    
              
@@ -1004,7 +1038,7 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': THIS_CFR_TOKEN,
                         },
-                        body: JSON.stringify({ token: result.token, id: QUOTATION_ID }),
+                        body: JSON.stringify({ token: result.token, id: QUOTATION_ID, tip: tipAmount }),
                     });
 
                     // Check the HTTP status

@@ -275,43 +275,49 @@
                                                 below</p>
                                         </div>
                                     </div>
-                                    <div class="d-flex flex-column gap-2 flex-sm-row ai-button-group" style="gap:20px;">
-                                        <button @click="editRequest($event)" style="border-color:transparent;"
-                                            class="w-100 w-sm-auto d-flex align-items-center justify-content-center gap-2 flex-wrap rounded border-0 px-4 py-2 bg-white text-teal fw-semibold text-sm text-sm-sm"><svg
-                                                xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                class="lucide lucide-pen-line w-4 h-4">
-                                                <path d="M12 20h9"></path>
-                                                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
-                                            </svg><span>Edit Request</span>
-                                        </button>
-
+                                    <div class="d-grid flex-column gap-2 flex-sm-row ai-button-group" style="gap:20px; grid-template-columns: repeat(2, 1fr);">
+                                        <div>
+                                            <button @click="editRequest($event)" style="border-color:transparent;"
+                                                class="w-100 w-sm-auto d-flex align-items-center justify-content-center gap-2 flex-wrap rounded border-0 px-4 py-2 bg-white text-teal fw-semibold text-sm text-sm-sm"><svg
+                                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="lucide lucide-pen-line w-4 h-4">
+                                                    <path d="M12 20h9"></path>
+                                                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                                                </svg><span>Edit Request</span>
+                                            </button>
+                                        </div>
 
 
                                         {{-- //@click="handlePaddleCheckout($event)" // Old click handler --}}
-                                        <button style="border-color:transparent; color:var(--gtheme-color);" id="pdfDownloadBtn" x-ref="downloadBtn"
-                                         @click="window.location.href='{{ route('checkout.page') }}'" 
-                                             {{-- @click="handlePaddleCheckout($event)" --}}
-                                             data-price="{{ $ai_document_price }}"
-                                            data-title="Customize AI Document"
-                                            class="w-100 w-sm-auto d-flex align-items-center justify-content-center gap-2 text-nowrap rounded px-4 py-2 bg-white fw-semibold fs-6 h-auto user-select-none border-0">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                class="lucide lucide-download w-4 h-4">
-                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                                <polyline points="7 10 12 15 17 10"></polyline>
-                                                <line x1="12" x2="12" y1="15" y2="3">
-                                                </line>
-                                            </svg>
-                                            <span>
-                                                {{ 'Download PDF - £' . $ai_document_price }}
-                                            </span>
-                                        </button>
+                                        <div>
+                                            <button style="border-color:transparent; color:var(--gtheme-color);" id="pdfDownloadBtn" x-ref="downloadBtn"
+                                                @click="goToCheckout()" 
+                                                    {{-- @click="handlePaddleCheckout($event)" --}}
+                                                    data-price="{{ $ai_document_price }}"
+                                                    data-title="Customize AI Document"
+                                                    class="w-100 w-sm-auto d-flex align-items-center justify-content-center gap-2 text-nowrap rounded px-4 py-2 bg-white fw-semibold fs-6 h-auto user-select-none border-0">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                        class="lucide lucide-download w-4 h-4">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                                        <line x1="12" x2="12" y1="15" y2="3">
+                                                        </line>
+                                                    </svg>
+                                                    <span x-text="'Download PDF - £' + (parseFloat({{ $ai_document_price }}) + parseFloat(tipAmount)).toFixed(2)">
+                                                    </span>
+                                            </button>
+                                           
+                                        </div>
+
+                                        
 
 
                                     </div>
+                                    
                                 </div>
                             </div>
                             <div class="card-body">
@@ -477,6 +483,7 @@
                 uuid: '',
                 email:userEmail,
                 token:'',
+                tipAmount: 0,
                 async init() {
                     window.authAlpine = this;
                     try {
@@ -649,6 +656,12 @@
 
                     // Redirect to Paddle Pay Link
                     // window.location.href = data.url;
+                },
+
+                goToCheckout() {
+                    const url = new URL('{{ route('checkout.page') }}');
+                    url.searchParams.append('tip', this.tipAmount);
+                    window.location.href = url.toString();
                 }
 
             }

@@ -277,19 +277,31 @@
 
             <hr>
 
-            <h3>Amount: <span class="ms-5">£<span class="cpw_amount">{{ number_format($quote?->cpw ?? $aiPrice, 2) }}</span></span>
-            </h3>
+            <div x-data="{ tipAmount: 0 }">
+                <h3>Amount: <span class="ms-5">£<span class="cpw_amount" x-text="(parseFloat({{ number_format($quote?->cpw ?? $aiPrice, 2, '.', '') }}) + parseFloat(tipAmount)).toFixed(2)">{{ number_format($quote?->cpw ?? $aiPrice, 2) }}</span></span>
+                </h3>
 
-            <form class="mb-4" onsubmit="applyPromoCode(event)">
-                <label class="mt-3">Have promo code?</label>
-                <div class="input-group" style="max-width:450px">
-                    <input autocomplete="off" value="{{ $quote?->promo_code }}" class="form-control" id="promo_code"
-                        placeholder="Promo code">
-                    <div class="input-group-append" placeholder="Code">
-                        <button class="sbutton input-group-text btn btn-secondary px-5">Apply</button>
+                @if ($aiDoc && $ai_document_tips && $ai_document_tips == 'on')
+                    <div class="mt-2">
+                        <label for="tip-slider" class="form-label fw-semibold">Add a tip (optional):</label>
+                        <div class="d-flex align-items-center">
+                            <input type="range" class="form-range" min="0" max="10" step="1" id="tip-slider" x-model="tipAmount">
+                            <span class="ms-3" x-text="'£' + tipAmount"></span>
+                        </div>
                     </div>
-                </div>
-            </form>
+                @endif
+
+                <form class="mb-4" onsubmit="applyPromoCode(event)">
+                    <label class="mt-3">Have promo code?</label>
+                    <div class="input-group" style="max-width:450px">
+                        <input autocomplete="off" value="{{ $quote?->promo_code }}" class="form-control" id="promo_code"
+                            placeholder="Promo code">
+                        <div class="input-group-append" placeholder="Code">
+                            <button class="sbutton input-group-text btn btn-secondary px-5">Apply</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
 
             <!-- Container for the Card Element -->
             <div class="card" style="max-width: 450px;">
@@ -779,6 +791,8 @@
             }
 
 
+            let tipAmount = document.querySelector('[x-data]').__alpine.$data.tipAmount;
+
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': THIS_CFR_TOKEN
@@ -795,7 +809,7 @@
                 $.ajax({
                     type: "POST",
                     url:   "/checkout-bank-payment",
-                    data: {id: QUOTATION_ID},
+                    data: {id: QUOTATION_ID, type: ITEM_TYPE, tip: tipAmount},
                     dataType: 'json',
                     success: function(data){
 
@@ -908,7 +922,7 @@
                 $.ajax({
                     type: "POST",
                     url:   "/nowpay-invoice",
-                    data: {id: QUOTATION_ID},
+                    data: {id: QUOTATION_ID, type: ITEM_TYPE, tip: tipAmount},
                     dataType: 'json',
                     success: function(data){
                 
@@ -921,8 +935,6 @@
                     }
                 });
             }
-
-        }
 
 
         

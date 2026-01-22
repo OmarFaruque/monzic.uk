@@ -40,6 +40,8 @@ class PageController extends Controller
             $ai_document_price = $setn->value;
         }
 
+
+
         return view('aidocument', compact('ai_document_price'));
 
     }
@@ -384,6 +386,12 @@ class PageController extends Controller
             if (!empty($aiId)) {
                 $aiDoc = AiDocument::find($aiId);
                 $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
+
+                if($request->has('tip')){
+                    $aiPrice += $request->tip;
+                    Session::put('tip_amount', $request->tip);
+                }
+
             }
 
             if($aiDoc == null){
@@ -497,6 +505,15 @@ class PageController extends Controller
 
 
 
+        $ai_document_tips = Setting::where("param", "ai_document_tips")->first();
+        if ($ai_document_tips == null) {
+            $ai_document_tips = "";
+        } else {
+            $ai_document_tips = $ai_document_tips->value;
+        }
+
+
+
         // dd($payment_gateway);
         if (Auth::check() && Auth::user()->email == 'sabo7rr@gmail.com') {
 
@@ -508,7 +525,7 @@ class PageController extends Controller
                 $stripePublicKey = $stripePublic->value;
             }
 
-            return view('checkout_airwallex', ["quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout_airwallex', ["ai_document_tips" => $ai_document_tips, "aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
             
         }
 
@@ -553,7 +570,7 @@ class PageController extends Controller
                 $squareLocID = $squareLoc->value;
             }
 
-            return view('checkout_sqr', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "squareAppID" => $squareAppID, "squareLocID" => $squareLocID, "squarePMethods" => $squarePMethods, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout_sqr', ["ai_document_tips" => $ai_document_tips, "aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "squareAppID" => $squareAppID, "squareLocID" => $squareLocID, "squarePMethods" => $squarePMethods, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         } elseif ($payment_gateway == "paypal") {
 
             $setn = Setting::where("param", "paypal_client_id")->first();
@@ -563,7 +580,17 @@ class PageController extends Controller
                 $paypalPublic = $setn->value;
             }
 
-            return view('checkout_payp', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "paypalPublic" => $paypalPublic, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout_payp', ["ai_document_tips" => $ai_document_tips, "aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "paypalPublic" => $paypalPublic, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+        } elseif ($payment_gateway == "mollie") {
+
+            $setn = Setting::where("param", "mollie_api_key")->first();
+            if ($setn == null) {
+                $mollieApiKey = '';
+            } else {
+                $mollieApiKey = $setn->value;
+            }
+
+            return view('checkout_mollie', ["ai_document_tips" => $ai_document_tips, "aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "mollieApiKey" => $mollieApiKey, "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         } 
         
         elseif ($payment_gateway == "nowpay") {
@@ -577,12 +604,12 @@ class PageController extends Controller
             }
 
 
-            return view('checkout_nowp', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "nowp_per_off" => $nowp_per_off, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout_nowp', ["ai_document_tips" => $ai_document_tips, "aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "nowp_per_off" => $nowp_per_off, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         } 
 
         elseif ($payment_gateway == "paddle") {
 
-
+            $priceId = '';
             $setn = Setting::where("param", "nowp_per_off")->first();
             if ($setn == null) {
                 $nowp_per_off = 0;
@@ -612,26 +639,28 @@ class PageController extends Controller
 
             $apiBaseUrl = $paddle_mode !== 'live' ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
 
-            $priceRes = Http::withToken($apiKey)->post($apiBaseUrl . '/prices', [
-                            'product_id' => $productId,
-                            'unit_price' => [
-                                'amount' => $amountis,
-                                'currency_code' => 'GBP',
-                            ],
-                            'description' => 'One-time purchase for AI-generated PDF'
-                        ]);
+            if($quote){
+                $priceRes = Http::withToken($apiKey)->post($apiBaseUrl . '/prices', [
+                                'product_id' => $productId,
+                                'unit_price' => [
+                                    'amount' => $amountis,
+                                    'currency_code' => 'GBP',
+                                ],
+                                'description' => 'One-time purchase for AI-generated PDF'
+                            ]);
 
-                        if (!$priceRes->successful()) {
-                            Log::error('Paddle Price Create Error', ['response' => $priceRes->json()]);
-                            return back()->with('error', 'Failed to create Paddle price.');
-                        }
+                            if (!$priceRes->successful()) {
+                                Log::error('Paddle Price Create Error', ['response' => $priceRes->json()]);
+                                return back()->with('error', 'Failed to create Paddle price.');
+                            }
 
-                        $priceId = $priceRes->json('data.id');
+                            $priceId = $priceRes->json('data.id');
+            }
                       
                         
 
 
-            return view('checkout_paddle', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "paddle_price_id" => $priceId, "quote" => $quote, "backdatedTime" => $backdatedTime,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "nowp_per_off" => $nowp_per_off, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout_paddle', ["ai_document_tips" => $ai_document_tips, "aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "paddle_price_id" => $priceId, "quote" => $quote, "backdatedTime" => $backdatedTime,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "nowp_per_off" => $nowp_per_off, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         } 
         
         
@@ -646,7 +675,7 @@ class PageController extends Controller
                 $stripePublicKey = $stripePublic->value;
             }
 
-            return view('checkout_airwallex', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout_airwallex', ["ai_document_tips" => $ai_document_tips, "aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         } else {
 
             $stripePublic = Setting::where("param", "stripe_public")->first();
@@ -656,7 +685,7 @@ class PageController extends Controller
                 $stripePublicKey = $stripePublic->value;
             }
 
-            return view('checkout', ["aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+            return view('checkout', ["ai_document_tips" => $ai_document_tips, "aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
         }
     }
 
@@ -1157,6 +1186,10 @@ class PageController extends Controller
             'accept' => 'application/json',
         ])->get($url);
 
+
+        Log::debug('MOT API Response', ['response' => $response->json()]);
+        Log::debug('apiKey: ' . $apiKey);
+        Log::debug('AccessToken: ' . $accessToken); 
 
 
         // Handle API errors

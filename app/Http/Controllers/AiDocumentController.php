@@ -44,7 +44,7 @@ class AiDocumentController extends Controller
         return view('payments.success', compact('hasQuote')); 
     }
 
-    public function getToken(){
+    public function getTokenWithCreatePriceId(Request $request){
         $setn = Setting::where("param", "paddle_vendor_id")->first();
         $paddle_mode = Setting::where("param", "paddle_mode")->first();
         if ($setn == null) {
@@ -59,9 +59,48 @@ class AiDocumentController extends Controller
             $paddle_vendor_id = $setn ? $setn->value : '';
         }
 
+
+
+        // We have to make price id, bucause for aidocument we add tip amount
+        $apiKey = Setting::where('param', 'paddle_apikey')->value('value');
+
+        $paddle_mode = Setting::where("param", "paddle_mode")->value('value');
+        if($paddle_mode && $paddle_mode == 'live'){
+            $apiKey = Setting::where("param", "paddle_apikey_live")->value('value');
+        }
+        $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
+        if($request->has('tip')){
+            $aiPrice += $request->input('tip');
+        }
+        $productId = Setting::where('param', 'paddle_ai_product_id')->value('value');
+        $amountis = (string) ($aiPrice * 100);
+            
+
+            
+
+        $apiBaseUrl = $paddle_mode !== 'live' ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
+
+        $priceRes = Http::withToken($apiKey)->post($apiBaseUrl . '/prices', [
+                                'product_id' => $productId,
+                                'unit_price' => [
+                                    'amount' => $amountis,
+                                    'currency_code' => 'GBP',
+                                ],
+                                'description' => 'One-time purchase for AI-generated PDF'
+                            ]);
+
+                            if (!$priceRes->successful()) {
+                                Log::error('Paddle Price Create Error', ['response' => $priceRes->json()]);
+                                return back()->with('error', 'Failed to create Paddle price.');
+                            }
+
+                            $priceId = $priceRes->json('data.id');
+
+
         return response()->json([
             'token' => $paddle_vendor_id,
-            'paddle_mode' => $paddle_mode->value
+            'paddle_mode' => $paddle_mode,
+            'price_id' => $priceId
         ]);
     }
 

@@ -42,10 +42,12 @@ class PaypalController extends Controller
         if ($type === 'ai') {
             $validatedData = Validator::make($request->all(), [
                 'id' => 'required|exists:ai_documents,id',
+                'tip' => 'nullable|numeric|min:0',
             ]);
         } else {
             $validatedData = Validator::make($request->all(), [
                 'id' => 'required|exists:quotes,id',
+                'tip' => 'nullable|numeric|min:0',
             ]);
         }
 
@@ -57,12 +59,15 @@ class PaypalController extends Controller
             ], 400);
         }
 
+        
+
         if ($type === 'ai') {
+            $tipAmount = $request->input('tip', 0);
             $document = AiDocument::findOrFail($request->id);
             if ($document->status === 'paid') {
                 return response()->json(['status' => 'success']);
             }
-            $amount = Setting::where('param', 'ai_document_price')->value('value');
+            $amount = Setting::where('param', 'ai_document_price')->value('value') + $tipAmount;
         } else {
             $quote = Quote::where("id", $request->id)->first();
             if ($quote->payment_status == 1) {
@@ -147,7 +152,7 @@ class PaypalController extends Controller
                 $responseData = $request->details;
 
                 // Log the full response for debugging
-                Log::info('PayPal Capture Details:', $responseData);
+                
     
                 if (isset($responseData['status']) && strtolower($responseData['status']) == 'completed') {
     
@@ -185,6 +190,7 @@ class PaypalController extends Controller
                         $finalEmailBody = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate);
                         Mail::to($document->user->email)->send(new AiDocumentReadyMail($finalEmailBody));
                     } else {
+                        // Log::info('PayPal insideElse Details:', $responseData);
                         $quote = Quote::where("id", $request->id)->first();
                         $quote->payment_status = 1;
                         $quote->spayment_id = "payp_" . $orderID;

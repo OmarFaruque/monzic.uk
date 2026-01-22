@@ -92,148 +92,206 @@
                             <form autocomplete="off" action="{{ route('update.OpenAPI') }}" method="POST">
                                 @csrf
                                 <div class="row">
-                                    <div class="col-md-10">
-                                        <div class="form-group">
-                                            <label for="openai_api_key" class="apikey">API Key</label>
-                                            <input type="text" name="openai_api_key" id="openai_api_key" value="{{ old('openai_api_key', $openai_api_key) }}" class="form-control">
+                                    <div class="col-md-7">
+                                        <div class="row d-flex align-items-center">
+                                            <div class="col-md-2"><label for="openai_api_key" class="apikey mb-0">API Key</label>
+                                            </div>
+                                            <div class="col-md-10"><input type="text" name="openai_api_key"
+                                                    id="openai_api_key" value="{{ old('openai_api_key', $openai_api_key) }}"
+                                                    class="form-control"></div>
                                         </div>
                                     </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label for="ai_document_price" class="apikey">Doc. Price</label>
-                                            <input type="number" min="0" name="ai_document_price" id="ai_document_price" value="{{ old('ai_document_price', $ai_document_price) }}" class="form-control">
+                                    <div class="col-md-3">
+                                        <div class="row d-flex align-items-center">
+                                            <div class="col-md-4"><label for="ai_document_price"
+                                                    class="apikey mb-0">Price</label></div>
+                                            <div class="col-md-8"><input type="number" min="0"
+                                                    name="ai_document_price" id="ai_document_price"
+                                                    value="{{ old('ai_document_price', $ai_document_price) }}"
+                                                    class="form-control"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-center">
+                                        <div class="row d-flex align-items-center gap-5">
+                                            <div class="col-md-6"><label for="ai_document_tips"
+                                                    class="apikey mb-0">Tips</label></div>
+                                            <div class="col-md-6">
+                                                <input type="checkbox"
+                                                    name="ai_document_tips" id="ai_document_tips"
+                                                    {{ old('ai_document_tips', $ai_document_tips) == 'on' ? 'checked' : '' }}
+                                                    class="form-check-input-custom" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="my-3"><button type="submit" class="btn btn-success"><i class="fa fa-save"></i>
+                                <div class="my-3"><button type="submit" class="btn btn-success"><i
+                                            class="fa fa-save"></i>
                                         UPDATE</button></div>
                             </form>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-12">
-                    <details class="my-5">
-                        <summary style="padding: 10px; font-size:20px; border:2px solid #999">CHECKOUT PAGE NOTICE:</summary>
-                        <div class="row">
-                            <div class="col-12 col-md-9">
-                                <div class="card" style="border: 5px solid #999; ">
-                                    <div class="card-header text-bold ">Checkout page notice</div>
-                                    <div class="card-body">
-                                        <form class="is_ckedit" autocomplete="off" onsubmit="updateSettings(event, 0)">
-                                            <input type="hidden" name="param" value="checkout_notice">
-                                            <textarea name="value" id="checkout_notice" class="form-control" required>{!! $checkout_notice !!}</textarea>
-                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
-                                                    UPDATE</button></div>
-                                        </form>
-                                    </div>
 
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-3">
 
-                                <div class="card" style="border: 5px solid #999; ">
-                                    <div class="card-header text-bold ">Show Checkout Page Notice</div>
-                                    <div class="card-body">
-                                        <form autocomplete="off" onsubmit="updateSettings(event, 0)">
-                                            <input type="hidden" name="param" value="show_checkout_notice">
-                                            <select style="font-size: 20px; font-weight:bold" name="value"
-                                                id="show_checkout_notice" class="form-control" required>
-                                                <option value="yes"
-                                                    {{ $show_checkout_notice == 'yes' ? 'selected' : '' }}>YES</option>
-                                                <option value="no"
-                                                    {{ $show_checkout_notice == 'no' ? 'selected' : '' }}>NO
-                                                </option>
-                                            </select>
-                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
-                                                    UPDATE</button></div>
-                                        </form>
+                <div class="col-12 col-md-12">
+                    <div class="card" style="border: 5px solid #999; ">
+                        <div class="card-header text-bold ">External Redirect</div>
+                        <div class="card-body">
+                            <form autocomplete="off" action="{{ route('update.externalRedirect') }}" method="POST">
+                                @csrf
+                                <div class="row d-flex align-items-center">
+                                    <div class="col-md-8"><input type="url" name="external_redirect_url" id="external_redirect_url" value="{{ old('external_redirect_url', $external_redirect_url) }}" class="form-control"></div>
+                                    <div class="col-md-4">
+                                        <select style="font-size: 20px; font-weight:bold" name="external_redirect_status" id="external_redirect_status" class="form-control" required>
+                                            <option value="1" {{ $external_redirect_status == 1 ? 'selected' : '' }}>ACTIVE</option>
+                                            <option value="0" {{ $external_redirect_status != 1 ? 'selected' : '' }}>INACTIVE</option>
+                                        </select>
                                     </div>
                                 </div>
-                            </div>
+                                <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
+                                        UPDATE</button></div>
+                            </form>
                         </div>
-                    </details>
+                    </div>
                 </div>
 
 
 
-                <div class="col-12">
-                    <details class="my-5">
-                        <summary style="padding: 10px; font-size:20px; border:2px solid #999">PAGE Popup NOTICE:
-                        </summary>
+                <div class="col-12 col-md-12">
 
-                        <div class="row">
-                            <div class="col-12 col-md-12">
-                                <div class="card" style="border: 5px solid #999; ">
-                                    <div class="card-header text-bold ">Page Popup notice</div>
-                                    <div class="card-body">
-                                        <form class="is_ckedit" autocomplete="off" onsubmit="updateSettings(event, 0)">
-                                            <input type="hidden" name="param" value="home_notice">
-                                            <textarea name="value" id="home_notice" class="form-control" required>{!! $home_notice !!}</textarea>
-                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
-                                                    UPDATE</button></div>
-                                        </form>
+                    <div class="col-12">
+                        <details class="my-5">
+                            <summary style="padding: 10px; font-size:20px; border:2px solid #999">CHECKOUT PAGE NOTICE:
+                            </summary>
+                            <div class="row">
+                                <div class="col-12 col-md-9">
+                                    <div class="card" style="border: 5px solid #999; ">
+                                        <div class="card-header text-bold ">Checkout page notice</div>
+                                        <div class="card-body">
+                                            <form class="is_ckedit" autocomplete="off"
+                                                onsubmit="updateSettings(event, 0)">
+                                                <input type="hidden" name="param" value="checkout_notice">
+                                                <textarea name="value" id="checkout_notice" class="form-control" required>{!! $checkout_notice !!}</textarea>
+                                                <div class="my-3"><button class="btn btn-success"><i
+                                                            class="fa fa-save"></i>
+                                                        UPDATE</button></div>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-3">
+
+                                    <div class="card" style="border: 5px solid #999; ">
+                                        <div class="card-header text-bold ">Show Checkout Page Notice</div>
+                                        <div class="card-body">
+                                            <form autocomplete="off" onsubmit="updateSettings(event, 0)">
+                                                <input type="hidden" name="param" value="show_checkout_notice">
+                                                <select style="font-size: 20px; font-weight:bold" name="value"
+                                                    id="show_checkout_notice" class="form-control" required>
+                                                    <option value="yes"
+                                                        {{ $show_checkout_notice == 'yes' ? 'selected' : '' }}>YES</option>
+                                                    <option value="no"
+                                                        {{ $show_checkout_notice == 'no' ? 'selected' : '' }}>NO
+                                                    </option>
+                                                </select>
+                                                <div class="my-3"><button class="btn btn-success"><i
+                                                            class="fa fa-save"></i>
+                                                        UPDATE</button></div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+
+
+                    <div class="col-12">
+                        <details class="my-5">
+                            <summary style="padding: 10px; font-size:20px; border:2px solid #999">PAGE Popup NOTICE:
+                            </summary>
+
+                            <div class="row">
+                                <div class="col-12 col-md-12">
+                                    <div class="card" style="border: 5px solid #999; ">
+                                        <div class="card-header text-bold ">Page Popup notice</div>
+                                        <div class="card-body">
+                                            <form class="is_ckedit" autocomplete="off"
+                                                onsubmit="updateSettings(event, 0)">
+                                                <input type="hidden" name="param" value="home_notice">
+                                                <textarea name="value" id="home_notice" class="form-control" required>{!! $home_notice !!}</textarea>
+                                                <div class="my-3"><button class="btn btn-success"><i
+                                                            class="fa fa-save"></i>
+                                                        UPDATE</button></div>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+
+                                    <div class="card" style="border: 5px solid #999; ">
+                                        <div class="card-header text-bold ">Show Page Popup</div>
+                                        <div class="card-body">
+                                            <form autocomplete="off" onsubmit="updateSettings(event, 0)">
+                                                <input type="hidden" name="param" value="show_home_notice">
+                                                <select style="font-size: 20px; font-weight:bold" name="value"
+                                                    id="show_home_notice" class="form-control" required>
+                                                    <option value="yes"
+                                                        {{ $show_home_notice == 'yes' ? 'selected' : '' }}>YES</option>
+                                                    <option value="no"
+                                                        {{ $show_home_notice == 'no' ? 'selected' : '' }}>NO
+                                                    </option>
+                                                </select>
+                                                <div class="my-3"><button class="btn btn-success"><i
+                                                            class="fa fa-save"></i>
+                                                        UPDATE</button></div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+
+                                    <div class="card" style="border: 5px solid #999; ">
+                                        <div class="card-header text-bold ">Page to show Popup</div>
+                                        <div class="card-body">
+                                            <form autocomplete="off" onsubmit="updateSettings(event, 0)">
+                                                <input type="hidden" name="param" value="choosen_page_notice">
+                                                <select style="font-size: 20px; font-weight:bold" name="value"
+                                                    id="choosen_page_notice" class="form-control" required>
+                                                    <option value="home"
+                                                        {{ $choosen_page_notice == 'home' ? 'selected' : '' }}>Home page
+                                                    </option>
+                                                    <option value="checkout"
+                                                        {{ $choosen_page_notice == 'checkout' ? 'selected' : '' }}>Checkout
+                                                        page
+                                                    </option>
+                                                    <option value="both"
+                                                        {{ $choosen_page_notice == 'both' ? 'selected' : '' }}>Both pages
+                                                    </option>
+                                                </select>
+                                                <div class="my-3"><button class="btn btn-success"><i
+                                                            class="fa fa-save"></i>
+                                                        UPDATE</button></div>
+                                            </form>
+                                        </div>
                                     </div>
 
                                 </div>
                             </div>
-                            <div class="col-6 col-md-6">
+                        </details>
+                    </div>
 
-                                <div class="card" style="border: 5px solid #999; ">
-                                    <div class="card-header text-bold ">Show  Page Popup</div>
-                                    <div class="card-body">
-                                        <form autocomplete="off" onsubmit="updateSettings(event, 0)">
-                                            <input type="hidden" name="param" value="show_home_notice">
-                                            <select style="font-size: 20px; font-weight:bold" name="value"
-                                                id="show_home_notice" class="form-control" required>
-                                                <option value="yes"
-                                                    {{ $show_home_notice == 'yes' ? 'selected' : '' }}>YES</option>
-                                                <option value="no"
-                                                    {{ $show_home_notice == 'no' ? 'selected' : '' }}>NO
-                                                </option>
-                                            </select>
-                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
-                                                    UPDATE</button></div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-6">
 
-                                <div class="card" style="border: 5px solid #999; ">
-                                    <div class="card-header text-bold ">Page to show Popup</div>
-                                    <div class="card-body">
-                                        <form autocomplete="off" onsubmit="updateSettings(event, 0)">
-                                            <input type="hidden" name="param" value="choosen_page_notice">
-                                            <select style="font-size: 20px; font-weight:bold" name="value"
-                                                id="choosen_page_notice" class="form-control" required>
-                                                <option value="home"
-                                                    {{ $choosen_page_notice == 'home' ? 'selected' : '' }}>Home page</option>
-                                                <option value="checkout"
-                                                    {{ $choosen_page_notice == 'checkout' ? 'selected' : '' }}>Checkout page
-                                                </option>
-                                                <option value="both"
-                                                    {{ $choosen_page_notice == 'both' ? 'selected' : '' }}>Both pages
-                                                </option>
-                                            </select>
-                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
-                                                    UPDATE</button></div>
-                                        </form>
-                                    </div>
-                                </div>
 
-                            </div>
-                        </div>
-                    </details>
+
+
+
                 </div>
-
-
-
-                
-
-                
             </div>
-        </div>
     </section>
 
 

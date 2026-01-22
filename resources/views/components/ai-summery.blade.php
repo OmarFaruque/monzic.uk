@@ -41,8 +41,9 @@
                                 <tr class="cart-subtotal">
                                     <th>Subtotal</th>
                                     <td><span class="woocommerce-Price-amount amount"><bdi><span
-                                                    class="woocommerce-Price-currencySymbol">£</span><span
-                                                    class="cpw_subtotal">{{ number_format($aiPrice, 2) }}</span></bdi></span>
+                                                    class="woocommerce-Price-currencySymbol">£</span>
+                                                    {{-- <span >{{ number_format($aiPrice, 2) }}</span></bdi></span> --}}
+                                                     <span class="cpw_subtotal" x-text="(parseFloat('{{ number_format($aiPrice, 2, '.', '') }}') + parseFloat(tipAmount)).toFixed(2)">{{ number_format( $aiPrice, 2) }}</span>
                                     </td>
                                 </tr>
                                 <tr class="cart-discount d-none">
@@ -55,8 +56,7 @@
                                 <tr class="order-total">
                                     <th>Total</th>
                                     <td><strong><span class="woocommerce-Price-amount amount"><bdi><span
-                                                        class="woocommerce-Price-currencySymbol">£</span><span
-                                                        class="cpw_total">{{ number_format($aiPrice, 2) }}</span></bdi></span></strong>
+                                                        class="woocommerce-Price-currencySymbol">£</span><span class="cpw_subtotal" x-text="(parseFloat('{{ number_format($aiPrice, 2, '.', '') }}') + parseFloat(tipAmount)).toFixed(2)">{{ number_format( $aiPrice, 2) }}</span></bdi></span></strong>
                                     </td>
                                 </tr>
 

@@ -41,6 +41,7 @@
                             <option value="squareup" {{ ($payment_gateway == "squareup") ? 'selected' : '' }}>SQUAREUP</option>
                             <option value="wordpress" {{ ($payment_gateway == "wordpress") ? 'selected' : '' }}>WOOCOMMERCE</option>
                             <option value="paddle" {{ ($payment_gateway == "paddle") ? 'selected' : '' }}>Paddle</option>
+                            <option value="mollie" {{ ($payment_gateway == "mollie") ? 'selected' : '' }}>Mollie</option>
                         </select>
 
                         <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
@@ -525,10 +526,35 @@
                                             </div>
 
 
-                                            <div class="row">
-                                                <div class="col-md-12"> <p>Webhook: {{route('paddle.webhook')}}</p> </div>
-                                            </div>
+                                            {{-- <div class="row"> --}}
+                                                {{-- <div class="col-md-12"> <p>Webhook: {{route('paddle.webhook')}}</p> </div> --}}
+                                            {{-- </div> --}}
                                             
+                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
+                                                    UPDATE</button></div>
+                                        </form>
+                                    </div>
+
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </details>
+                </div>
+
+
+                <div class="col-12">
+                    <details class="my-3">
+                        <summary style="padding: 10px; font-size:20px; border:2px solid #999">Mollie Settings:</summary>
+                        <div class="row">
+                            <div class="col-12 col-md-12 text-left">
+                                <div class="card" style="border: 5px solid #999; ">
+                                    <div class="card-header text-bold ">Mollie Settings</div>
+                                    <div class="card-body">
+                                        <form autocomplete="off" onsubmit="updateSettings(event, 0)">
+                                            <input type="hidden" name="param" value="mollie_api_key">
+                                            <label for="mollie_api_key">Mollie API Key</label>
+                                            <input value="{{$mollie_api_key}}"  name="value" id="mollie_api_key" class="form-control" required>
                                             <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
                                                     UPDATE</button></div>
                                         </form>

@@ -72,6 +72,12 @@ class CheckoutController extends Controller
                 ], 500);
             }
             $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
+
+            if(session()->has('tip_amount')){
+                $aiPrice += session('tip_amount');
+                session()->forget('tip_amount');
+            }
+
             $amount = floatval($aiPrice);
             $aiDoc->paddle_checkout_id = "bank_" . $aiDoc->id;
             $policy_number = $aiDoc->id;
@@ -172,6 +178,12 @@ class CheckoutController extends Controller
             } else {
                 $amount = floatval($amount);
             }
+
+            if(session()->has('tip_amount')){
+                $amount += session('tip_amount');
+                session()->forget('tip_amount');
+            }
+            
             $aiDoc->amount = $amount;
             $aiDoc->paddle_checkout_id = "bank_" . $aiDoc->id;
     

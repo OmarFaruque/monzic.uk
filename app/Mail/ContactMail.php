@@ -84,7 +84,7 @@ class ContactMail extends Mailable
 
         return new Envelope(
             // Use the default in config.mail.php
-            from: new Address($ticket_address, config('app.name').' '.'Ticket'),
+            // from: new Address($ticket_address, config('app.name').' '.'Ticket'),   // Remove for monaroz.com
             replyTo: [
                 new Address($ticket_address, config('app.name').' '.'Ticket'),
             ],

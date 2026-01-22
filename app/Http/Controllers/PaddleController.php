@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class PaddleController extends Controller
 {
@@ -28,15 +29,12 @@ class PaddleController extends Controller
      */
     public function paddleWebhook(Request $request){
         $payload = $request->all();
-        
-        
 
-        if (($payload['event_type'] ?? '') === 'transaction.completed' && isset($payload['data']['custom_data']['doc_uuid'])) {
+        if (( $payload['status'] ?? '') === 'completed' && isset($payload['custom_data']['doc_uuid'])) {
             // Retrieve previously stored content from session or DB
-
             
+            $uuid = $payload['custom_data']['doc_uuid'] ?? null;
             
-            $uuid = $payload['data']['custom_data']['doc_uuid'] ?? null;
 
             if (!$uuid) {
                 Log::warning('Missing doc_uuid in custom_data');
@@ -63,10 +61,10 @@ class PaddleController extends Controller
 
             // Save to DB
             $aiDoc->update([
-                'paddle_checkout_id' => $payload['data']['id'] ?? null,
+                'paddle_checkout_id' => $payload['id'] ?? null,
                 'pdf_path'           => $pdfPath,
-                'amount'             => isset($payload['data']['details']['payout_totals']['total']) ? ((float) $payload['data']['details']['payout_totals']['total']) / 100: null,
-                'currency'           => $payload['data']['payout_totals']['currency_code'] ?? 'USD',
+                'amount'             => (isset($payload['totals']['total']) ? ((float) $payload['totals']['total']) / 100: null),
+                'currency'           => $payload['currency_code'] ?? 'GBP',
                 'status'             => 'paid',
             ]);
 
@@ -84,18 +82,22 @@ class PaddleController extends Controller
 
             return response()->json(['success' => true]);
         }
+ 
 
+        if (($payload['status'] ?? '') === 'completed' && isset($payload['custom_data']['qid'])) {
+            $qid = $payload['custom_data']['qid'];
 
-        if (($payload['event_type'] ?? '') === 'transaction.completed' && isset($payload['data']['custom_data']['qid'])) {
-            $qid = $payload['data']['custom_data']['qid'];
             $quote = Quote::find($qid);
-
             $quote->payment_status = 1;
-            $quote->save();
-
+            
             $quote = $this->adjustOrderStartTime($quote);
 
             Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
+
+            $quote->mail_sent = Carbon::now();
+            $quote->spayment_id = $payload['id'] ? 'paddle_' . $payload['id'] : null;
+
+            $quote->save();
             return response()->json(['success' => true]);
         }
 
