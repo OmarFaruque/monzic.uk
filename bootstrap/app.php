@@ -76,9 +76,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $schedule->command('queue:work --stop-when-empty')->everyTwoMinutes()->withoutOverlapping();
 
-
-        
-
     })
     
 

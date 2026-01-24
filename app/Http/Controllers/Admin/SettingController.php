@@ -437,14 +437,73 @@ class SettingController extends Controller
             $mollie_api_key = $setn->value;
         }
 
-        
 
-        
+        // "lemonsqueezy_store_id", "lemonsqueezy_api_key", "lemonsqueezy_webhook_secret"
+        $setn = Setting::where("param", "lemonsqueezy_store_id")->first();
+        if ($setn == null) {
+            $lemonsqueezy_store_id = "";
+        } else {
+            $lemonsqueezy_store_id = $setn->value;
+        }
+
+        $setn = Setting::where("param", "lemonsqueezy_api_key")->first();
+        if ($setn == null) {
+            $lemonsqueezy_api_key = "";
+        } else {
+            $lemonsqueezy_api_key = $setn->value;
+        }
+
+        $setn = Setting::where("param", "lemonsqueezy_variant_id")->first();
+        if ($setn == null) {
+            $lemonsqueezy_variant_id = "";
+        } else {
+            $lemonsqueezy_variant_id = $setn->value;
+        }
+
+        $setn = Setting::where("param", "lemonsqueezy_webhook_secret")->first();
+        if ($setn == null) {
+            $lemonsqueezy_webhook_secret = "";
+        } else {
+            $lemonsqueezy_webhook_secret = $setn->value;
+        }
 
 
-
-
-        return view('admin.payment-settings', ["mollie_api_key" => $mollie_api_key, "paddle_apikey_live" => $paddle_apikey_live, "paddle_client_token_live" => $paddle_client_token_live, "paddle_mode" => $paddle_mode, "paddle_apikey" => $paddle_apikey, "paddle_vendor_id" => $paddle_vendor_id, "payment_gateway" => $payment_gateway, "stripe_public" => $stripe_public, "stripe_secret" => $stripe_secret, "square_app_id" => $square_app_id, "square_access_token" => $square_access_token, "square_loc_id" => $square_loc_id, "square_pmethods" => $square_pmethods, "paypal_client_secret" => $paypal_client_secret, "paypal_client_id" => $paypal_client_id, "now_api_key" => $now_api_key, "now_ipn_secret" => $now_ipn_secret, "bank_name" => $bank_name, "bank_sort_code" => $bank_sort_code, "bank_account_number" => $bank_account_number, "bank_ref_number" => $bank_ref_number, "show_bank" => $show_bank, "nowp_per_off" => $nowp_per_off, "bank_infor_text" => $bank_infor_text, 'bank_per_off' => $bank_per_off, 'checkout_checkbox' => $checkout_checkbox, "stripe_whook_secret" => $stripe_whook_secret, "airwallex_client_id" => $airwallex_client_id, "airwallex_api_key" => $airwallex_api_key, "airwallex_whook_secret" => $airwallex_whook_secret, ]);
+        return view('admin.payment-settings', [
+            "mollie_api_key" => $mollie_api_key, 
+            "paddle_apikey_live" => $paddle_apikey_live, 
+            "paddle_client_token_live" => $paddle_client_token_live, 
+            "paddle_mode" => $paddle_mode, 
+            "paddle_apikey" => $paddle_apikey, 
+            "paddle_vendor_id" => $paddle_vendor_id, 
+            "payment_gateway" => $payment_gateway, 
+            "stripe_public" => $stripe_public, 
+            "stripe_secret" => $stripe_secret, 
+            "square_app_id" => $square_app_id, 
+            "square_access_token" => $square_access_token, 
+            "square_loc_id" => $square_loc_id, 
+            "square_pmethods" => $square_pmethods, 
+            "paypal_client_secret" => $paypal_client_secret, 
+            "paypal_client_id" => $paypal_client_id, 
+            "now_api_key" => $now_api_key, 
+            "now_ipn_secret" => $now_ipn_secret, 
+            "bank_name" => $bank_name, 
+            "bank_sort_code" => $bank_sort_code, 
+            "bank_account_number" => $bank_account_number, 
+            "bank_ref_number" => $bank_ref_number, 
+            "show_bank" => $show_bank, 
+            "nowp_per_off" => $nowp_per_off, 
+            "bank_infor_text" => $bank_infor_text, 
+            'bank_per_off' => $bank_per_off, 
+            'checkout_checkbox' => $checkout_checkbox, 
+            "stripe_whook_secret" => $stripe_whook_secret, 
+            "airwallex_client_id" => $airwallex_client_id, 
+            "airwallex_api_key" => $airwallex_api_key, 
+            "airwallex_whook_secret" => $airwallex_whook_secret, 
+            "lemonsqueezy_store_id" => $lemonsqueezy_store_id, 
+            "lemonsqueezy_api_key" => $lemonsqueezy_api_key, 
+            "lemonsqueezy_webhook_secret" => $lemonsqueezy_webhook_secret,
+            "lemonsqueezy_variant_id" => $lemonsqueezy_variant_id,
+        ]);
     }
 
 
@@ -514,7 +573,7 @@ class SettingController extends Controller
             ], 400);
         }
 
-        $params = ["quote_php_func", "quote_js_func", "expires_vis", "backdated_time", "payment_gateway", "stripe_public", "stripe_secret", "square_app_id", "square_access_token", "square_loc_id", "square_pmethods", "carsearch_api", "paypal_client_secret", "paypal_client_id", "checkout_notice", "show_checkout_notice", "home_notice", "show_home_notice", "choosen_page_notice", "now_api_key", "now_ipn_secret",  "bank_name", "bank_sort_code", "bank_account_number", "bank_ref_number", "show_bank", "nowp_per_off", "bank_per_off", "bank_infor_text", "checkout_checkbox", "stripe_whook_secret", "airwallex_client_id", "airwallex_api_key", "airwallex_whook_secret", "external_redirect_url", "external_redirect_status", "mollie_api_key"];
+        $params = ["quote_php_func", "quote_js_func", "expires_vis", "backdated_time", "payment_gateway", "stripe_public", "stripe_secret", "square_app_id", "square_access_token", "square_loc_id", "square_pmethods", "carsearch_api", "paypal_client_secret", "paypal_client_id", "checkout_notice", "show_checkout_notice", "home_notice", "show_home_notice", "choosen_page_notice", "now_api_key", "now_ipn_secret",  "bank_name", "bank_sort_code", "bank_account_number", "bank_ref_number", "show_bank", "nowp_per_off", "bank_per_off", "bank_infor_text", "checkout_checkbox", "stripe_whook_secret", "airwallex_client_id", "airwallex_api_key", "airwallex_whook_secret", "external_redirect_url", "external_redirect_status", "mollie_api_key", "lemonsqueezy_store_id", "lemonsqueezy_api_key", "lemonsqueezy_webhook_secret", "lemonsqueezy_variant_id"];
 
 
         if (! in_array($request->param, $params) && strpos($request->param, "page[") === false  && strpos($request->param, "pags[") === false) {

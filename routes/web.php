@@ -28,6 +28,7 @@ use App\Http\Controllers\Admin\AdminTicketController;
 use App\Http\Controllers\AirWallexControllerController;
 use App\Http\Controllers\PaddleController;
 use App\Http\Controllers\MollieController;
+use App\Http\Controllers\LemonSqueezyController;
 
 Route::get('/', [PageController::class, 'index']);
 Route::get('/customer-terms-of-business', [PageController::class, 'customerTermsOfBusiness']);
@@ -313,3 +314,10 @@ Route::post('/mollie/webhook', [MollieController::class, 'mollieWebhook'])->name
 Route::get('/mollie/confirmed', [MollieController::class, 'confirmed'])->name('mollie.confirmed');
 Route::get('/mollie/cancelled', [MollieController::class, 'cancelled'])->name('mollie.cancelled');
 Route::post('/mollie-checkout-registration', [MollieController::class, 'checkoutRegistration']);
+
+
+// Lemon Squeezy Routes
+Route::post('/lemonsqueezy/create-checkout', [LemonSqueezyController::class, 'createCheckout'])->name('lemonsqueezy.checkout');
+Route::post('/lemonsqueezy/confirm-payment', [LemonSqueezyController::class, 'confirmPayment'])->name('lemonsqueezy.confirm');
+Route::post('/api/lemonsqueezy-webhook', [LemonSqueezyController::class, 'webhook'])->name('lemonsqueezy.webhook');
+Route::get('/payment/success', [LemonSqueezyController::class, 'paymentSuccess'])->name('payment.success.view');

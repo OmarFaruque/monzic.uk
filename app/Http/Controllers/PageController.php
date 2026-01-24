@@ -666,17 +666,28 @@ class PageController extends Controller
         
         
         elseif ($payment_gateway == "airwallex") {
-
-
             $stripePublic = Setting::where("param", "stripe_public")->first();
             if ($stripePublic == null) {
                 $stripePublicKey = config('services.stripe.public');
             } else {
                 $stripePublicKey = $stripePublic->value;
             }
-
             return view('checkout_airwallex', ["ai_document_tips" => $ai_document_tips, "aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
-        } else {
+        }
+        
+        elseif ($payment_gateway == "lemonsqueezy") {
+            $stripePublic = Setting::where("param", "stripe_public")->first();
+            if ($stripePublic == null) {
+                $stripePublicKey = config('services.stripe.public');
+            } else {
+                $stripePublicKey = $stripePublic->value;
+            }
+            return view('checkout_lemonsqueezy', ["ai_document_tips" => $ai_document_tips, "aiPrice"=>$aiPrice, "aiDoc"=>$aiDoc, "quote" => $quote, "backdatedTime" => $backdatedTime, "stripePublicKey" => $stripePublicKey,  "checkout_notice" => $checkout_notice, "show_checkout_notice" => $show_checkout_notice, "home_notice" => $home_notice, "show_home_notice" => $show_home_notice, "choosen_page_notice" => $choosen_page_notice, "show_bank" => $show_bank, "bank_infor_text" => $bank_infor_text, 'checkout_checkbox' => $checkout_checkbox, 'bank_per_off' => $bank_per_off,]);
+        }
+        
+        
+        
+        else {
 
             $stripePublic = Setting::where("param", "stripe_public")->first();
             if ($stripePublic == null) {

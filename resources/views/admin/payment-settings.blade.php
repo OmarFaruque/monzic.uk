@@ -42,6 +42,7 @@
                             <option value="wordpress" {{ ($payment_gateway == "wordpress") ? 'selected' : '' }}>WOOCOMMERCE</option>
                             <option value="paddle" {{ ($payment_gateway == "paddle") ? 'selected' : '' }}>Paddle</option>
                             <option value="mollie" {{ ($payment_gateway == "mollie") ? 'selected' : '' }}>Mollie</option>
+                            <option value="lemonsqueezy" {{ ($payment_gateway == "lemonsqueezy") ? 'selected' : '' }}>Lemon Squeezy</option>
                         </select>
 
                         <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
@@ -568,6 +569,81 @@
                 </div>
 
 
+                <div class="col-12">
+                    <details class="my-3" open>
+                        <summary style="padding: 10px; font-size:20px; border:2px solid #999">Lemon Squeezy Payment Settings: @if($payment_gateway == "lemonsqueezy")<span class="badge badge-success ml-2">Active</span>@endif</summary>
+                        <div class="row">
+                            <div class="col-12 col-md-4">
+                                <div class="card" style="border: 5px solid #999; ">
+                                    <div class="card-header text-bold ">Lemon Squeezy Store ID</div>
+                                    <div class="card-body">
+                                        <form autocomplete="off" onsubmit="updateSettings(event, 0)">
+                                            <input type="hidden" name="param" value="lemonsqueezy_store_id">
+                                            <input value="{{ $lemonsqueezy_store_id ?? '' }}" placeholder="Enter your Lemon Squeezy Store ID" name="value" id="lemonsqueezy_store_id" class="form-control" required>
+                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i> UPDATE</button></div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <div class="card" style="border: 5px solid #999; ">
+                                    <div class="card-header text-bold ">Lemon Squeezy Variant ID</div>
+                                    <div class="card-body">
+                                        <form autocomplete="off" onsubmit="updateSettings(event, 0)">
+                                            <input type="hidden" name="param" value="lemonsqueezy_variant_id">
+                                            <input value="{{ $lemonsqueezy_variant_id ?? '' }}" placeholder="Enter your Lemon Squeezy Variant ID" name="value" id="lemonsqueezy_variant_id" class="form-control" required>
+                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i> UPDATE</button></div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <div class="card" style="border: 5px solid #999; ">
+                                    <div class="card-header text-bold ">Lemon Squeezy API Key</div>
+                                    <div class="card-body">
+                                        <form autocomplete="off" onsubmit="updateSettings(event, 0)">
+                                            <input type="hidden" name="param" value="lemonsqueezy_api_key">
+                                            <div class="input-group">
+                                                <input value="{{ $lemonsqueezy_api_key ?? '' }}" name="value" id="lemonsqueezy_api_key" placeholder="Enter your Lemon Squeezy API Key" class="form-control" type="password" required>
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('lemonsqueezy_api_key', this)">
+                                                        <i class="fa fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i> UPDATE</button></div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="card" style="border: 5px solid #999; ">
+                                    <div class="card-header text-bold ">Lemon Squeezy Webhook Secret</div>
+                                    <div class="card-body">
+                                        <div><small>This is used to verify webhook events from Lemon Squeezy. <br> Webhook URL: <code>{{ url('/api/lemonsqueezy-webhook') }}</code></small></div>
+                                        <form autocomplete="off" onsubmit="updateSettings(event, 0)" class="mt-3">
+                                            <input type="hidden" name="param" value="lemonsqueezy_webhook_secret">
+                                            <div class="input-group">
+                                                <input value="{{ $lemonsqueezy_webhook_secret ?? '' }}" name="value" id="lemonsqueezy_webhook_secret" placeholder="webhook secret..." class="form-control" type="password" required>
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('lemonsqueezy_webhook_secret', this)">
+                                                        <i class="fa fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i> UPDATE</button></div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+
 
         </div>
     </section>
@@ -603,5 +679,19 @@
     <script src="{{ asset('/admin-assets/js/settings.js?ver=' . config('app.version')) }}"></script>
 
 
-    <script></script>
+    <script>
+        function togglePasswordVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            const icon = button.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 @endpush
