@@ -524,36 +524,84 @@ class SettingController extends Controller
             $paddle_mode = Setting::where('param', 'paddle_mode')->value('value');
             
             $apiKey = $paddle_mode !== 'live' ? Setting::where('param', 'paddle_apikey')->value('value') : Setting::where('param', 'paddle_apikey_live')->value('value');
-            $apiUrl = $paddle_mode !== 'live' ? 'https://sandbox-api.paddle.com/products' : 'https://api.paddle.com/products';
-            $QproductId = $paddle_mode !== 'live' ? Setting::where('param', 'paddle_quote_product_id_test')->value('value') : Setting::where('param', 'paddle_quote_product_id')->value('value');
+            $apiBaseUrl = $paddle_mode !== 'live' ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
+            $qKey = $paddle_mode !== 'live' ? 'paddle_quote_product_id_test' : 'paddle_quote_product_id';
+            $aiKey = $paddle_mode !== 'live' ? 'paddle_ai_product_id_test' : 'paddle_ai_product_id';
+            
+            $QproductId = Setting::where('param', $qKey)->value('value');
+            $AiproductId = Setting::where('param', $aiKey)->value('value');
 
             try {
-                     if (!$QproductId) {
-                        $productRes = Http::withToken($apiKey)->post($apiUrl, [
-                            'name' => 'Quote',
-                            'description' => 'Quote for Car Registration',
-                            'type' => 'standard',
-                            'tax_category' => 'standard',
-                        ]);
-
-                        
-
-                        if (!$productRes->successful()) {
-                            Log::error('Paddle Product Create Error', ['response' => $productRes->json()]);
-                            return back()->with('error', 'Failed to create Paddle product.');
-                        }
-
-                        $QproductId = $productRes->json('data.id');
-
-                        
-
-                        // Store in settings
-                        $qKey = $paddle_mode !== 'live' ? 'paddle_quote_product_id_test' : 'paddle_quote_product_id';
+                // Create or verify Quote Product
+                if (!$QproductId) {
+                    
+                    $QproductId = $this->createOrGetPaddleProduct(
+                        $apiKey, 
+                        $apiBaseUrl, 
+                        'Quote', 
+                        'Quote for Car Registration'
+                    );
+                    if ($QproductId) {
                         Setting::updateOrCreate(['param' => $qKey], ['value' => $QproductId]);
+                        Log::info('Quote Product Created', ['product_id' => $QproductId]);
+                    } else {
+                        return back()->with('error', 'Failed to create Paddle Quote product.');
                     }
-                } catch (\Exception $e) {
-                    return back()->with('error', 'Failed to create Paddle product/price: ' . $e->getMessage());
+                } else {
+                    // Verify product exists in Paddle
+                    if (!$this->paddleProductExists($apiKey, $apiBaseUrl, $QproductId)) {
+                        
+                        $QproductId = $this->createOrGetPaddleProduct(
+                            $apiKey, 
+                            $apiBaseUrl, 
+                            'Quote', 
+                            'Quote for Car Registration'
+                        );
+                        if ($QproductId) {
+                            Setting::updateOrCreate(['param' => $qKey], ['value' => $QproductId]);
+                        } else {
+                            return back()->with('error', 'Failed to create Paddle Quote product.');
+                        }
+                    }
                 }
+
+                // Create or verify AI Document Product
+                if (!$AiproductId) {
+                    
+                    $AiproductId = $this->createOrGetPaddleProduct(
+                        $apiKey, 
+                        $apiBaseUrl, 
+                        'AI Document Download', 
+                        'Instant PDF generated from AI prompt'
+                    );
+                    if ($AiproductId) {
+                        Setting::updateOrCreate(['param' => $aiKey], ['value' => $AiproductId]);
+                        
+                    } else {
+                        return back()->with('error', 'Failed to create Paddle AI Document product.');
+                    }
+                } else {
+                    // Verify product exists in Paddle
+                    if (!$this->paddleProductExists($apiKey, $apiBaseUrl, $AiproductId)) {
+                        
+                        $AiproductId = $this->createOrGetPaddleProduct(
+                            $apiKey, 
+                            $apiBaseUrl, 
+                            'AI Document Download', 
+                            'Instant PDF generated from AI prompt'
+                        );
+                        if ($AiproductId) {
+                            Setting::updateOrCreate(['param' => $aiKey], ['value' => $AiproductId]);
+                        } else {
+                            return back()->with('error', 'Failed to create Paddle AI Document product.');
+                        }
+                    }
+                }
+                
+            } catch (\Exception $e) {
+                Log::error('Paddle Setup Error', ['error' => $e->getMessage()]);
+                return back()->with('error', 'Failed to setup Paddle products: ' . $e->getMessage());
+            }
         }
 
 
@@ -881,4 +929,63 @@ class SettingController extends Controller
             'final_price' => $final_price,
         ], 200);
     }
+
+
+    /**
+     * Check if a Paddle product exists
+     */
+    private function paddleProductExists($apiKey, $apiBaseUrl, $productId)
+    {
+        try {
+            $response = Http::withToken($apiKey)->get($apiBaseUrl . '/products/' . $productId);
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error('Paddle Product Check Error', ['product_id' => $productId, 'error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+
+    /**
+     * Create a Paddle product and return its ID
+     */
+    private function createOrGetPaddleProduct($apiKey, $apiBaseUrl, $productName, $productDescription)
+    {
+        try {
+            Log::info('Creating Paddle Product', [
+                'name' => $productName,
+                'description' => $productDescription,
+                'api_url' => $apiBaseUrl . '/products'
+            ]);
+
+            $response = Http::withToken($apiKey)->post($apiBaseUrl . '/products', [
+                'name' => $productName,
+                'description' => $productDescription,
+                'type' => 'standard',
+                'tax_category' => 'standard',
+            ]);
+
+            if (!$response->successful()) {
+                Log::error('Paddle Product Create Error', [
+                    'status' => $response->status(),
+                    'response' => $response->json(),
+                    'product_name' => $productName
+                ]);
+                return null;
+            }
+
+            $productId = $response->json('data.id');
+            
+            
+            return $productId;
+
+        } catch (\Exception $e) {
+            Log::error('Paddle Product Creation Exception', [
+                'error' => $e->getMessage(),
+                'product_name' => $productName
+            ]);
+            return null;
+        }
+    }
 }
+

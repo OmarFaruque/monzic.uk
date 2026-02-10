@@ -45,6 +45,8 @@ class AiDocumentController extends Controller
     }
 
     public function getTokenWithCreatePriceId(Request $request){
+
+        $type = $request->input('type', 'ai_document');
         $setn = Setting::where("param", "paddle_vendor_id")->first();
         $paddle_mode = Setting::where("param", "paddle_mode")->first();
         if ($setn == null) {
@@ -59,28 +61,28 @@ class AiDocumentController extends Controller
             $paddle_vendor_id = $setn ? $setn->value : '';
         }
 
-
-
         // We have to make price id, bucause for aidocument we add tip amount
         $apiKey = Setting::where('param', 'paddle_apikey')->value('value');
 
         $paddle_mode = Setting::where("param", "paddle_mode")->value('value');
-        if($paddle_mode && $paddle_mode == 'live'){
-            $apiKey = Setting::where("param", "paddle_apikey_live")->value('value');
-        }
-        $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
-        if($request->has('tip')){
-            $aiPrice += $request->input('tip');
-        }
-        $productId = Setting::where('param', 'paddle_ai_product_id')->value('value');
-        $amountis = (string) ($aiPrice * 100);
+        
             
 
-            
+        $priceId = null;
+        if($type == 'a_document' ){
+            if($paddle_mode && $paddle_mode == 'live'){
+                $apiKey = Setting::where("param", "paddle_apikey_live")->value('value');
+            }
+            $aiPrice = Setting::where("param", "ai_document_price")->pluck('value')->first();
+            if($request->has('tip')){
+                $aiPrice += $request->input('tip');
+            }
+            $productId = Setting::where('param', 'paddle_ai_product_id')->value('value');
+            $amountis = (string) ($aiPrice * 100);
+        
+            $apiBaseUrl = $paddle_mode !== 'live' ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
 
-        $apiBaseUrl = $paddle_mode !== 'live' ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com';
-
-        $priceRes = Http::withToken($apiKey)->post($apiBaseUrl . '/prices', [
+            $priceRes = Http::withToken($apiKey)->post($apiBaseUrl . '/prices', [
                                 'product_id' => $productId,
                                 'unit_price' => [
                                     'amount' => $amountis,
@@ -95,6 +97,7 @@ class AiDocumentController extends Controller
                             }
 
                             $priceId = $priceRes->json('data.id');
+        }
 
 
         return response()->json([

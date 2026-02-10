@@ -714,8 +714,6 @@
                                     <div id="valid-msg" style="color:green; font-size: 12px"></div>
                                     <input autocomplete="off" id="contact_number" name="contact_number" type="hidden">
                                 </div>
-
-
                             </div>
 
 

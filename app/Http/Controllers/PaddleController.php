@@ -30,12 +30,19 @@ class PaddleController extends Controller
     public function paddleWebhook(Request $request){
         $payload = $request->all();
 
-        if (( $payload['status'] ?? '') === 'completed' && isset($payload['custom_data']['doc_uuid'])) {
-            // Retrieve previously stored content from session or DB
-            
-            $uuid = $payload['custom_data']['doc_uuid'] ?? null;
+        // [2026-02-10 16:41:48] local.INFO: Received Paddle Webhook {"payload":{"data":{"id":"txn_01kh46vk3rv3827xwq8kdxysfb","items":[{"price":{"id":"pri_01kh46v5zqexjrst0wwx70fd4t","name":null,"type":"standard","status":"active","quantity":{"maximum":100,"minimum":1},"tax_mode":"internal","created_at":"2026-02-10T16:41:07.831057Z","product_id":"pro_01kh3m2wp7jdtv5b5chz8wp13x","unit_price":{"amount":"12705","currency_code":"GBP"},"updated_at":"2026-02-10T16:41:07.831057Z","custom_data":null,"description":"One-time purchase for Car Insurance Quote","trial_period":null,"billing_cycle":null,"unit_price_overrides":[]},"price_id":"pri_01kh46v5zqexjrst0wwx70fd4t","quantity":1,"proration":null}],"origin":"web","status":"paid","details":{"totals":{"fee":null,"tax":"1657","total":"12705","credit":"0","balance":"0","discount":"0","earnings":null,"subtotal":"11048","grand_total":"12705","currency_code":"GBP","credit_to_balance":"0"},"line_items":[{"id":"txnitm_01kh46vrym9ddazacp43gjmgtb","totals":{"tax":"1657","total":"12705","discount":"0","subtotal":"11048"},"item_id":null,"product":{"id":"pro_01kh3m2wp7jdtv5b5chz8wp13x","name":"Quote","type":"standard","status":"active","image_url":null,"created_at":"2026-02-10T11:13:17.511Z","updated_at":"2026-02-10T11:13:17.511Z","custom_data":null,"description":"Quote for Car Registration","tax_category":"standard","consents_required":[]},"price_id":"pri_01kh46v5zqexjrst0wwx70fd4t","quantity":1,"tax_rate":"0.15","unit_totals":{"tax":"1657","total":"12705","discount":"0","subtotal":"11048"},"is_tax_exempt":false,"revised_tax_exempted":false}],"payout_totals":null,"tax_rates_used":[{"totals":{"tax":"1657","total":"12705","discount":"0","subtotal":"11048"},"tax_rate":"0.15"}],"adjusted_totals":{"fee":null,"tax":"1657","total":"12705","earnings":null,"subtotal":"11048","grand_total":"12705","retained_fee":"0","currency_code":"GBP"}},"checkout":{"url":"https://75af-103-16-25-24.ngrok-free.app?_ptxn=txn_01kh46vk3rv3827xwq8kdxysfb"},"payments":[{"amount":"12705","status":"captured","created_at":"2026-02-10T16:41:44.700041Z","error_code":null,"captured_at":"2026-02-10T16:41:46.630639Z","method_details":{"card":{"type":"visa","last4":"4242","expiry_year":2029,"expiry_month":11,"cardholder_name":"sfsf"},"type":"card","south_korea_local_card":null},"payment_method_id":"paymtd_01kh46w9yz9tx4z7v84rsdn9xt","payment_attempt_id":"cce9e2b1-0ebf-4412-915c-d8033278ce16","stored_payment_method_id":"1e4d6010-80c2-40a7-904a-ed2bcc12db97"}],"billed_at":"2026-02-10T16:41:47.235323568Z","address_id":"add_01kh46vrqj1d46gw2z6cvp2e2z","created_at":"2026-02-10T16:41:21.305162Z","invoice_id":null,"revised_at":null,"updated_at":"2026-02-10T16:41:47.235325202Z","business_id":null,"custom_data":{"qid":3847,"tip":0,"item_type":"quote"},"customer_id":"ctm_01kh3tkwe96g8yqzt1wcx9tkg6","discount_id":null,"receipt_data":null,"currency_code":"GBP","billing_period":null,"invoice_number":null,"billing_details":null,"collection_mode":"automatic","subscription_id":null},"event_id":"evt_01kh46wcfdbkewm7w0kz03rp9y","event_type":"transaction.paid","occurred_at":"2026-02-10T16:41:47.245787Z","notification_id":"ntf_01kh46wctgvn8gr1vj037417mg"}} 
+        if(!isset($payload['data']['status'])){
+            Log::warning('Paddle Webhook Missing Status', ['payload' => $payload]);
+            return response()->json(['error' => 'Missing status in payload'], 400);
+        }
+
             
 
+        if (( $payload['data']['status'] ?? '') === 'paid' && isset($payload['data']['custom_data']['doc_uuid'])) {
+            // Retrieve previously stored content from session or DB
+            
+            $uuid = $payload['data']['custom_data']['doc_uuid'] ?? null;
+            
             if (!$uuid) {
                 Log::warning('Missing doc_uuid in custom_data');
                 return response('Missing UUID', 400);
@@ -61,10 +68,10 @@ class PaddleController extends Controller
 
             // Save to DB
             $aiDoc->update([
-                'paddle_checkout_id' => $payload['id'] ?? null,
+                'paddle_checkout_id' => $payload['data']['id'] ?? null,
                 'pdf_path'           => $pdfPath,
-                'amount'             => (isset($payload['totals']['total']) ? ((float) $payload['totals']['total']) / 100: null),
-                'currency'           => $payload['currency_code'] ?? 'GBP',
+                'amount'             => (isset($payload['data']['details']['totals']['total']) ? ((float) $payload['data']['details']['totals']['total']) / 100: null),
+                'currency'           => $payload['data']['currency_code'] ?? 'GBP',
                 'status'             => 'paid',
             ]);
 
@@ -84,8 +91,8 @@ class PaddleController extends Controller
         }
  
 
-        if (($payload['status'] ?? '') === 'completed' && isset($payload['custom_data']['qid'])) {
-            $qid = $payload['custom_data']['qid'];
+        if (($payload['data']['status'] ?? '') === 'paid' && isset($payload['data']['custom_data']['qid'])) {
+            $qid = $payload['data']['custom_data']['qid'];
 
             $quote = Quote::find($qid);
             $quote->payment_status = 1;
@@ -95,7 +102,7 @@ class PaddleController extends Controller
             Mail::to($quote->user()->first())->send(new OrderConfirmationMail($quote));
 
             $quote->mail_sent = Carbon::now();
-            $quote->spayment_id = $payload['id'] ? 'paddle_' . $payload['id'] : null;
+            $quote->spayment_id = $payload['data']['id'] ? 'paddle_' . $payload['data']['id'] : null;
 
             $quote->save();
             return response()->json(['success' => true]);

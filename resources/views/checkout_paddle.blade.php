@@ -1047,7 +1047,8 @@
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify({
-                        tip: tipAmount
+                        tip: tipAmount, 
+                        type: ITEM_TYPE,
                     })
                 });
 
@@ -1066,40 +1067,58 @@
                     token: data.token,
                     eventCallback: function(event) {
 
-                        console.log("Paddle Event:", event);
+                        
                         if (event.name === "checkout.error") {
                             console.error("Paddle Checkout Error:", event);
                         }
 
                         if (event.name === "checkout.completed") {
                             // you can also send event data to your server via AJAX
-                            fetch("{{ route('paddle.webhook') }}", {
-                                method: 'POST',
-                                 headers: {
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                },
-                                credentials: 'same-origin',
-                                body: JSON.stringify(event.data)
-                            })
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error("Network response was not ok");
-                                }
-                                return response.json();
-                            })
-                            .then(data => {
-                                if(data.success){
-                                    let qId = "{{ $quote?->id ?? $aiDoc?->id }}";
-                                    let redirectUrl = "{{ route('paddle.success') }}" + "?q=" + qId;
+                            // fetch("{{ route('paddle.webhook') }}", {
+                            //     method: 'POST',
+                            //      headers: {
+                            //         'X-Requested-With': 'XMLHttpRequest',
+                            //         'Content-Type': 'application/json',
+                            //         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            //     },
+                            //     credentials: 'same-origin',
+                            //     body: JSON.stringify(event.data)
+                            // })
+                            // .then(response => {
+                            //     console.log("Webhook response status:", response.status);
+                            //     if (!response.ok) {
+                            //         return response.text().then(text => {
+                            //             throw new Error(`HTTP ${response.status}: ${text}`);
+                            //         });
+                            //     }
+                            //     return response.json();
+                            // })
+                            // .then(data => {
+                            //     console.log("Webhook response data:", data);
+                            //     if(data.success){
+                            //         let qId = "{{ $quote?->id ?? $aiDoc?->id }}";
+                            //         let redirectUrl = "{{ route('paddle.success') }}" + "?q=" + qId;
 
-                                    window.location.href = redirectUrl; // 🔄 redirect
-                                }
-                            })
-                            .catch(error => {
-                                console.error("❌ Error sending success data:", error);
-                            });
+                            //         // window.location.href = redirectUrl; // 🔄 redirect
+                            //     }
+                            // })
+                            // .catch(error => {
+                            //     console.error("❌ Webhook error details:", error);
+                            //     console.error("Event data sent:", event.data);
+                            //     // Still redirect even on error, as Paddle may have already processed it
+                            //     // setTimeout(() => {
+                            //     //     let qId = "{{ $quote?->id ?? $aiDoc?->id }}";
+                            //     //     let redirectUrl = "{{ route('paddle.success') }}" + "?q=" + qId;
+                            //     //     window.location.href = redirectUrl;
+                            //     // }, 2000);
+                            // });
+
+                            
+                            let qId = "{{ $quote?->id ?? $aiDoc?->id }}";
+                            let redirectUrl = "{{ route('paddle.success') }}" + "?q=" + qId;
+
+                            window.location.href = redirectUrl; // 🔄 redirect
+                            
                         }
 
                     }

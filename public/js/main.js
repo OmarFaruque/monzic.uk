@@ -301,7 +301,6 @@ $("form input, form select, form textarea").on('input', function(){
 
 function quoteForm(event){ 
 	
-    console.log('this is from js event')
 	event.preventDefault();
 
     let parent = $(event.target).closest('form');
@@ -321,7 +320,6 @@ function quoteForm(event){
 		dataType: 'json',
 		success: function(data){
             
-            console.log('after success: ', data)
             // parent.css("opacity", "1").css("pointer-events", "auto");
             // $("form").trigger('reset');
 			window.location.replace("/checkout");

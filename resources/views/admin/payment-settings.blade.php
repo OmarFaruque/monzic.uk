@@ -527,9 +527,9 @@
                                             </div>
 
 
-                                            {{-- <div class="row"> --}}
-                                                {{-- <div class="col-md-12"> <p>Webhook: {{route('paddle.webhook')}}</p> </div> --}}
-                                            {{-- </div> --}}
+                                            <div class="row">
+                                                <div class="col-md-12"> <p><small><i>Webhook: {{route('paddle.webhook')}}</i></small></p> </div>
+                                            </div>
                                             
                                             <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
                                                     UPDATE</button></div>

@@ -317,3 +317,9 @@ Route::post('/lemonsqueezy/create-checkout', [LemonSqueezyController::class, 'cr
 Route::post('/lemonsqueezy/confirm-payment', [LemonSqueezyController::class, 'confirmPayment'])->name('lemonsqueezy.confirm');
 Route::post('/api/lemonsqueezy-webhook', [LemonSqueezyController::class, 'webhook'])->name('lemonsqueezy.webhook');
 Route::get('/payment/success', [LemonSqueezyController::class, 'paymentSuccess'])->name('payment.success.view');
+
+
+Route::get('/clear-cache', function () {
+    Artisan::call('optimize:clear');
+    return 'Cache cleared successfully';
+});
