@@ -105,6 +105,57 @@ class AppUserController extends Controller
 
 
 
+    public function exportUsers(Request $request)
+    {
+        $admin = $request->user();
+        if (!$admin->isAllowed(["SUPER_ADMIN", "ADMIN"])) {
+            return response('Access Restricted', 403);
+        }
 
+        $fileName = 'users_export.csv';
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+
+        $callback = function() {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Email', 'First Name', 'Last Name', 'Phone Number', 'Sign Up Date', 'Address']);
+
+            User::with('orders')->orderBy('user_id', 'desc')->chunk(100, function($users) use($file) {
+                 foreach ($users as $user) {
+                    $latestOrder = $user->orders->sortByDesc('id')->first();
+
+                    $row['email']        = $user->email;
+                    $row['first_name']   = $user->first_name;
+                    $row['last_name']    = $user->last_name;
+                    $row['phone_number'] = $latestOrder ? $latestOrder->contact_number : '';
+                    $row['sign_up_date'] = $user->created_at->format('Y-m-d');
+                    $address = "";
+                    if($latestOrder){
+                        $address = ($latestOrder->address??'') . ', ' . ($latestOrder->postcode??'');
+                    }
+                    $row['address']      = $address;
+
+                    fputcsv($file, [
+                        $row['email'],
+                        $row['first_name'],
+                        $row['last_name'],
+                        $row['phone_number'],
+                        $row['sign_up_date'],
+                        $row['address']
+                    ]);
+                }
+            });
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 
 }

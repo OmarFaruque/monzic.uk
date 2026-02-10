@@ -212,9 +212,11 @@ Route::prefix('admin')->group(function () {
 
 
         Route::get('/users', [AppUserController::class, 'index']);
+        Route::get('/users/export', [AppUserController::class, 'exportUsers']);
         Route::get('/users/data', [AppUserController::class, 'data']);  
         Route::patch('/users', [AppUserController::class, 'updateUser']);
         Route::delete('/user/{user_id}', [AppUserController::class, 'deleteUser']);
+
 
         
 
@@ -277,12 +279,6 @@ Route::prefix('admin')->group(function () {
         Route::post('/settings/openapi', [SettingController::class, 'updateOpenAPISetting'])->name('update.OpenAPI');
         Route::post('/settings/external-redirect', [SettingController::class, 'updateExternalRedirectSetting'])->name('update.externalRedirect');
         Route::post('/evaluate-php-quote', [SettingController::class, 'evaluatePhpQuote']);
-
-
-        
-        
-        
-
 
 
         Route::get('/update-password', [AdminController::class, 'showChangePassword']);

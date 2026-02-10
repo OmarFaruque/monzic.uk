@@ -1145,4 +1145,3 @@
         }
     </script>
 @endpush
-// successUrl: @json(route('paddle.success', ['q' => $quote?->id ?? $aiDoc?->id]))

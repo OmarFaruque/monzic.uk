@@ -13,6 +13,12 @@ let glob_tr = null;
 
 
 let buttons = [
+	{
+		text: 'Export Users',
+		action: function(){
+			exportUserDataAsCSV();
+		} 
+	}
 ];
 
   
@@ -85,6 +91,28 @@ table.on('column-visibility.dt', function(e, settings, column, state){
 
 
 
+
+function exportUserDataAsCSV(){
+
+	$.ajax({
+		type: "GET",
+		url:  "/admin/users/export",
+		success: function(data){
+			let csvContent = "data:text/csv;charset=utf-8," + data;
+			var encodedUri = encodeURI(csvContent);
+			var link = document.createElement("a");
+			link.setAttribute("href", encodedUri);
+			link.setAttribute("download", "users_export.csv");
+			document.body.appendChild(link); // Required for FF
+
+			link.click(); // This will download the data file named "users_export.csv".
+		},
+		error: function (xhr, status, error) {
+			render_errors(JSON.parse(xhr.responseText), 'toast');
+		}
+	});
+
+}
 
 
 
