@@ -24,6 +24,16 @@ use DataTables;
 class PolicyController extends Controller
 {
 
+    private function normalizeText(?string $value): string
+    {
+        return mb_strtolower(trim((string) $value));
+    }
+
+    private function normalizeRegistration(?string $value): string
+    {
+        return preg_replace('/\s+/', '', $this->normalizeText($value));
+    }
+
 
     public function __construct(Request $request)
     {
@@ -742,21 +752,21 @@ class PolicyController extends Controller
                 }
             }
             if (isset($matches["last_name"])) {
-                if (strtolower($matches["last_name"]) != strtolower($quote->last_name)) { // Match month
+                if ($this->normalizeText($matches["last_name"]) != $this->normalizeText($quote->last_name)) { // Match month
                     $hasFail++;
                 } else {
                     $hasSuccess++;
                 }
             }
             if (isset($matches["first_name"])) {
-                if (strtolower($matches["first_name"]) != strtolower($quote->first_name)) { // Match month
+                if ($this->normalizeText($matches["first_name"]) != $this->normalizeText($quote->first_name)) { // Match month
                     $hasFail++;
                 } else {
                     $hasSuccess++;
                 }
             }
             if (isset($matches["email"])) {
-                if (strtolower($matches["email"]) != strtolower($quote->email)) { // Match month
+                if ($this->normalizeText($matches["email"]) != $this->normalizeText($quote->email)) { // Match month
                     $hasFail++;
                 } else {
                     $hasSuccess++;
@@ -767,12 +777,12 @@ class PolicyController extends Controller
                 $registrations = explode(",", $matches["registrations"]);
                 $regData = [];
                 foreach ($registrations as $reg) {
-                    $reg = trim(strtolower($reg));
+                    $reg = $this->normalizeRegistration($reg);
                     if (!empty($reg)) {
                         $regData[] = $reg;
                     }
                 }
-                if (count($regData) > 0 && !in_array(strtolower($quote->reg_number), $regData)) {
+                if (count($regData) > 0 && !in_array($this->normalizeRegistration($quote->reg_number), $regData)) {
                     $hasFail++;
                 } else {
                     $hasSuccess++;

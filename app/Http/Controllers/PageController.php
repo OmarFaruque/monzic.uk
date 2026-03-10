@@ -26,6 +26,16 @@ use Illuminate\Support\Facades\Validator;
 class PageController extends Controller
 {
 
+    private function normalizeText(?string $value): string
+    {
+        return mb_strtolower(trim((string) $value));
+    }
+
+    private function normalizeRegistration(?string $value): string
+    {
+        return preg_replace('/\s+/', '', $this->normalizeText($value));
+    }
+
 
     /**
      * Show Ai document page 
@@ -979,10 +989,10 @@ class PageController extends Controller
                     $hasSuccess++;
                 }
 
-                if (strtolower($matches["last_name"]) == strtolower($quote->last_name)) { // Match month
+                if ($this->normalizeText($matches["last_name"]) == $this->normalizeText($quote->last_name)) { // Match month
                     $hasSuccess++;
                 }
-                if (strtolower($matches["first_name"]) == strtolower($quote->first_name)) { // Match month
+                if ($this->normalizeText($matches["first_name"]) == $this->normalizeText($quote->first_name)) { // Match month
                     $hasSuccess++;
                 }
                 if ($hasSuccess >= 3) {
@@ -1015,7 +1025,7 @@ class PageController extends Controller
                     $hasSuccess++;
                 }
 
-                if (strtolower($matches["last_name"]) == strtolower($quote->last_name)) { // Match month
+                if ($this->normalizeText($matches["last_name"]) == $this->normalizeText($quote->last_name)) { // Match month
                     $hasSuccess++;
                 }
 
@@ -1027,7 +1037,7 @@ class PageController extends Controller
 
 
             if (isset($matches["email"])) {
-                if (strtolower($matches["email"]) == strtolower($quote->email)) { // Match month
+                if ($this->normalizeText($matches["email"]) == $this->normalizeText($quote->email)) { // Match month
                     $bStatus =  true;
                     break;
                 }
@@ -1038,12 +1048,12 @@ class PageController extends Controller
                 $registrations = explode(",", $matches["registrations"]);
                 $regData = [];
                 foreach ($registrations as $reg) {
-                    $reg = trim(strtolower($reg));
+                    $reg = $this->normalizeRegistration($reg);
                     if (!empty($reg)) {
                         $regData[] = $reg;
                     }
                 }
-                if (count($regData) > 0 && in_array(strtolower($quote->reg_number), $regData)) {
+                if (count($regData) > 0 && in_array($this->normalizeRegistration($quote->reg_number), $regData)) {
                     $bStatus =  true;
                     break;
                 }
@@ -1658,4 +1668,3 @@ class PageController extends Controller
         }
     }
 }
-
