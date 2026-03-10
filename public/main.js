@@ -125,6 +125,7 @@ function loginForm(event){
                     }
                 });
 
+
                 THIS_CFR_TOKEN = data.token;
 
                 $("#user_email").val(data.email);

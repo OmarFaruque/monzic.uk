@@ -867,6 +867,8 @@
 
                     THIS_CFR_TOKEN = token;
 
+                    document.querySelector('meta[name="csrf-token"]').setAttribute('content', token);
+
 
                     $("#login_region").html(
                         `<div style="font-size: 16px;">Your account have been created, and you are currently logged in as  <b>${user_name}</b> <span class="verify_email_address">(${user_email})</span></div>`

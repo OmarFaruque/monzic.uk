@@ -140,6 +140,8 @@ function loginForm(event){
 
                 THIS_CFR_TOKEN = data.token;
 
+                document.querySelector('meta[name="csrf-token"]').setAttribute('content', data.token); 
+
                 if(typeof squarePMethods  != 'undefined' || typeof paypayPMethods  != 'undefined'){
                     // setUpPayment();
                 }
