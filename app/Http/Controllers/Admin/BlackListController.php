@@ -17,6 +17,29 @@ class BlackListController extends Controller
 {
 
 
+    private function normalizeText(?string $value): string
+    {
+        return mb_strtolower(trim((string) $value));
+    }
+
+    private function normalizeRegistration(?string $value): string
+    {
+        return preg_replace('/\s+/', '', $this->normalizeText($value));
+    }
+
+    private function normalizeRegistrations(string $registrations): string
+    {
+        $normalized = [];
+        foreach (explode(',', $registrations) as $registration) {
+            $registration = $this->normalizeRegistration($registration);
+            if ($registration !== '') {
+                $normalized[] = $registration;
+            }
+        }
+
+        return implode(', ', array_unique($normalized));
+    }
+
     public function __construct(Request $request)
     {
     }
@@ -90,19 +113,19 @@ class BlackListController extends Controller
 
         $matches = [];
         if($request->has('last_name') && $request->last_name != ""){
-            $matches["last_name"] = $request->last_name;
+            $matches["last_name"] = $this->normalizeText($request->last_name);
         }
         if($request->has('first_name') && $request->first_name != ""){
-            $matches["first_name"] = $request->first_name;
+            $matches["first_name"] = $this->normalizeText($request->first_name);
         }
         if($request->has('email') && $request->email != ""){
-            $matches["email"] = $request->email;
+            $matches["email"] = $this->normalizeText($request->email);
         }
         if($request->has('birth_date') && $request->birth_date != ""){
             $matches["birth_date"] = $request->birth_date;
         }
         if($request->has('registrations') && $request->registrations != ""){
-            $matches["registrations"] = $request->registrations;
+            $matches["registrations"] = $this->normalizeRegistrations($request->registrations);
         }   
 
         $matches = json_encode($matches);
@@ -158,19 +181,19 @@ class BlackListController extends Controller
 
         $matches = [];
         if($request->has('last_name') && $request->last_name != ""){
-            $matches["last_name"] = $request->last_name;
+            $matches["last_name"] = $this->normalizeText($request->last_name);
         }
         if($request->has('first_name') && $request->first_name != ""){
-            $matches["first_name"] = $request->first_name;
+            $matches["first_name"] = $this->normalizeText($request->first_name);
         }
         if($request->has('email') && $request->email != ""){
-            $matches["email"] = $request->email;
+            $matches["email"] = $this->normalizeText($request->email);
         }
         if($request->has('birth_date') && $request->birth_date != ""){
             $matches["birth_date"] = $request->birth_date;
         }
         if($request->has('registrations') && $request->registrations != ""){
-            $matches["registrations"] = $request->registrations;
+            $matches["registrations"] = $this->normalizeRegistrations($request->registrations);
         }
 
         $matches = json_encode($matches);

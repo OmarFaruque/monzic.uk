@@ -34,7 +34,7 @@ if($('#myTable').length){
 		dom: '<B<"datatable_dom_pull_left"f><t>lp>',
 		'initComplete' : function(setting, json){ //When table has been fully initialize
 			// set_up_data_plugs();
-			$('.dt-buttons').before('<h2>BlackLists</h2>');
+			$('.dt-buttons').before('<h2>Black Lists</h2>');
 		},
 		//responsive: true,
 		'lengthMenu': [[50, 100, -1], [50, 100,  'All']],
