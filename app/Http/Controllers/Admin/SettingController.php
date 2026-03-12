@@ -936,9 +936,26 @@ class SettingController extends Controller
      */
     private function paddleProductExists($apiKey, $apiBaseUrl, $productId)
     {
+        if (!$productId) {
+            return false;
+        }
+        
         try {
             $response = Http::withToken($apiKey)->get($apiBaseUrl . '/products/' . $productId);
-            return $response->successful();
+            
+            if (!$response->successful()) {
+                return false;
+            }
+
+            $status = $response->json('data.status');
+            
+            // If the product is archived, treat it as not existing
+            if ($status === 'archived') {
+                Log::warning('Paddle Product archived', ['product_id' => $productId]);
+                return false;
+            }
+            
+            return true;
         } catch (\Exception $e) {
             Log::error('Paddle Product Check Error', ['product_id' => $productId, 'error' => $e->getMessage()]);
             return false;

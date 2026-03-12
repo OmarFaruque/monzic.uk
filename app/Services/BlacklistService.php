@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\BlackList;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class BlacklistService
 {
@@ -17,12 +18,18 @@ class BlacklistService
         return preg_replace('/\s+/', '', $this->normalizeText($value));
     }
 
+    public function normalizeEmail(?string $value): string
+    {
+        return preg_replace('/\s+/', '', $this->normalizeText($value));
+    }
+
     public function isBlacklisted(array $payload): bool
     {
         $normalized = $this->normalizePayload($payload);
         $entries = $this->getCandidateEntries($normalized);
 
         foreach ($entries as $entry) {
+
             $matches = json_decode($entry->matches, true);
             if (!is_array($matches)) {
                 continue;
@@ -64,6 +71,8 @@ class BlacklistService
             ->where(function ($query) use ($normalized) {
                 if (!empty($normalized['email'])) {
                     $query->orWhere('matches', 'like', '%"email":"' . $normalized['email'] . '"%');
+                    // Also try with spaces if the stored data might have them
+                    $query->orWhere('matches', 'like', '%"email":"' . str_replace('@', ' @', $normalized['email']) . '"%');
                 }
                 if (!empty($normalized['first_name'])) {
                     $query->orWhere('matches', 'like', '%"first_name":"' . $normalized['first_name'] . '"%');
@@ -84,7 +93,7 @@ class BlacklistService
     private function normalizePayload(array $payload): array
     {
         return [
-            'email' => $this->normalizeText($payload['email'] ?? ''),
+            'email' => $this->normalizeEmail($payload['email'] ?? ''),
             'first_name' => $this->normalizeText($payload['first_name'] ?? ''),
             'last_name' => $this->normalizeText($payload['last_name'] ?? ''),
             'birth_date' => $this->normalizeBirthDate($payload['birth_date'] ?? null),
@@ -119,6 +128,10 @@ class BlacklistService
 
     private function matchesEntry(array $matches, array $payload): bool
     {
+        Log::info("matchesEntry: " . json_encode($matches));
+        Log::info("payload: " . json_encode($payload));
+
+
         if (isset($matches['birth_date']) && !$this->birthDateMatches($matches['birth_date'], $payload['birth_date'])) {
             return false;
         }
@@ -131,7 +144,7 @@ class BlacklistService
             return false;
         }
 
-        if (isset($matches['email']) && $this->normalizeText($matches['email']) !== $payload['email']) {
+        if (isset($matches['email']) && $this->normalizeEmail($matches['email']) !== $payload['email']) {
             return false;
         }
 
@@ -141,6 +154,7 @@ class BlacklistService
 
         return true;
     }
+
 
     private function birthDateMatches(string $blacklistBirthDate, string $birthDate): bool
     {

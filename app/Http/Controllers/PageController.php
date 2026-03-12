@@ -7,8 +7,8 @@ use Stripe\Stripe;
 use App\Func\MyPdf;
 use App\Models\Quote;
 use App\Models\Setting;
-use App\Models\BlackList;
 use App\Models\PromoCode;
+use App\Services\BlacklistService;
 use Illuminate\View\View;
 use Stripe\PaymentIntent;
 use Illuminate\Support\Str;
@@ -26,16 +26,10 @@ use Illuminate\Support\Facades\Validator;
 class PageController extends Controller
 {
 
-
-     private function normalizeText(?string $value): string
+    public function __construct(private BlacklistService $blacklistService)
     {
-        return mb_strtolower(trim((string) $value));
     }
-
-    private function normalizeRegistration(?string $value): string
-    {
-        return preg_replace('/\s+/', '', $this->normalizeText($value));
-    }
+    
 
     /**
      * Show Ai document page 
@@ -372,6 +366,8 @@ class PageController extends Controller
         // if (config('app.env') == "local") {
         //     $id = 1;
         // }
+
+        Log::info("idis: " . $id);
         
 
         if ($request->has("miiti")) {
@@ -953,118 +949,13 @@ class PageController extends Controller
     private function isBlackListed($quote)
     {
 
-        $blacklists = BlackList::get();
-
-        $bStatus = false;
-
-        foreach ($blacklists as $blacklist) {
-
-            $hasFail = 0;
-            $hasSuccess = 0;
-
-            // Do the code matching
-            $matches = json_decode($blacklist->matches, true);
-
-
-            if (isset($matches["birth_date"]) && isset($matches["last_name"]) && isset($matches["first_name"])) {
-
-
-                // Parse start and end dates and times
-                $bthDate = $quote->date_of_birth; // Format: DD/MM/YYYY
-                list($bDay, $bMonth, $bYear) = explode('-', $bthDate);
-                $date_of_birth = date("Y-m-d", strtotime("$bYear-$bMonth-$bDay"));
-
-
-                $bdata = explode("-", $matches["birth_date"]);
-
-                $qdata = explode("-", $date_of_birth);
-
-                if ($bdata[0] != $qdata[0]) { // Match year
-                    $hasFail++;
-                } else if (isset($bdata[1]) && intval($bdata[1]) != intval($qdata[1])) { // Match month
-                    $hasFail++;
-                } else if (isset($bdata[2]) && intval($bdata[2]) != intval($qdata[2])) { // Match month
-                    $hasFail++;
-                } else {
-                    $hasSuccess++;
-                }
-
-                
-                if ($this->normalizeText($matches["last_name"]) == $this->normalizeText($quote->last_name)) { // Match month
-                    $hasSuccess++;
-                }
-                if ($this->normalizeText($matches["first_name"]) == $this->normalizeText($quote->first_name)) { // Match month
-                    $hasSuccess++;
-                }
-                if ($hasSuccess >= 3) {
-                    $bStatus =  true;
-                    break;
-                }
-            }
-
-
-            if (isset($matches["birth_date"]) && isset($matches["last_name"])) {
-
-
-                // Parse start and end dates and times
-                $bthDate = $quote->date_of_birth; // Format: DD/MM/YYYY
-                list($bDay, $bMonth, $bYear) = explode('-', $bthDate);
-                $date_of_birth = date("Y-m-d", strtotime("$bYear-$bMonth-$bDay"));
-
-
-                $bdata = explode("-", $matches["birth_date"]);
-
-                $qdata = explode("-", $date_of_birth);
-
-                if ($bdata[0] != $qdata[0]) { // Match year
-                    $hasFail++;
-                } else if (isset($bdata[1]) && intval($bdata[1]) != intval($qdata[1])) { // Match month
-                    $hasFail++;
-                } else if (isset($bdata[2]) && intval($bdata[2]) != intval($qdata[2])) { // Match month
-                    $hasFail++;
-                } else {
-                    $hasSuccess++;
-                }
-
-                if ($this->normalizeText($matches["last_name"]) == $this->normalizeText($quote->last_name)) { // Match month
-                    $hasSuccess++;
-                }
-
-                if ($hasSuccess >= 2) {
-                    $bStatus =  true;
-                    break;
-                }
-            }
-
-
-            if (isset($matches["email"])) {
-                if ($this->normalizeText($matches["email"]) == $this->normalizeText($quote->email)) { // Match month
-                    $bStatus =  true;
-                    break;
-                }
-            }
-
-            if (isset($matches["registrations"])) {
-
-                $registrations = explode(",", $matches["registrations"]);
-                $regData = [];
-                foreach ($registrations as $reg) {
-                    $reg = $this->normalizeRegistration($reg);
-                    if (!empty($reg)) {
-                        $regData[] = $reg;
-                    }
-                }
-                
-                if (count($regData) > 0 && in_array($this->normalizeRegistration($quote->reg_number), $regData)) {
-                    $bStatus =  true;
-                    break;
-                }
-            }
-        }
-
-
-
-        return $bStatus;
+        return $this->blacklistService->isBlacklisted([
+            'email' => $quote->email ?? (Auth::check() ? Auth::user()->email : null),
+            'first_name' => $quote->first_name ?? null,
+            'last_name' => $quote->last_name ?? null,
+            'birth_date' => $quote->date_of_birth ?? null,
+            'reg_number' => $quote->reg_number ?? null,
+        ]);   
     }
 
 
@@ -1604,10 +1495,20 @@ class PageController extends Controller
         
         try {
             $response = Http::withToken($apiKey)->get($apiBaseUrl . '/products/' . $productId);
-            $exists = $response->successful();
             
+            if (!$response->successful()) {
+                return false;
+            }
+
+            $status = $response->json('data.status');
             
-            return $exists;
+            // If the product is archived, treat it as not existing so we can create a new one
+            if ($status === 'archived') {
+                Log::warning('Paddle Product archived', ['product_id' => $productId]);
+                return false;
+            }
+            
+            return true;
         } catch (\Exception $e) {
             Log::error('Paddle Product Check Error', ['product_id' => $productId, 'error' => $e->getMessage()]);
             return false;

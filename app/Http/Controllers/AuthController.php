@@ -6,6 +6,7 @@ use App\Mail\VerifyEmailMail;
 use App\Models\Quote;
 use App\Models\User;
 use App\Models\Setting;
+use App\Services\BlacklistService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,9 @@ class AuthController extends Controller
 {
 
 
+    public function __construct(private BlacklistService $blacklistService)
+    {
+    }
     /**
      * Login The User
      * @param Request $request
@@ -80,6 +84,18 @@ class AuthController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => "Wrong login details",
+            ], 400);
+        }
+
+
+        if ($this->blacklistService->isUserBlacklisted($user)) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Wrong login details',
             ], 400);
         }
 
@@ -218,6 +234,19 @@ class AuthController extends Controller
                 'status' => false,
                 'message' => "Validation error",
                 'errors' => $validateUser->errors()
+            ], 400);
+        }
+
+        // Check if the user is blacklisted
+        if ($this->blacklistService->isBlacklisted([
+            'email' => $request->email,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+        ])) {
+            return response()->json([
+                'status' => false,
+                'message' => "Validation error",
+                'errors' => ['email' => ['This email is not allowed to register']]
             ], 400);
         }
 

@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Console\Scheduling\Schedule;
 use App\Http\Middleware\HandleUnAuthorized;
 use App\Http\Middleware\ExternalRedirectMiddleware;
+use App\Http\Middleware\CheckBlacklistedUser;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->append(ExternalRedirectMiddleware::class);
+         $middleware->append(CheckBlacklistedUser::class);
 
 
         $middleware->redirectGuestsTo(function ($request) {

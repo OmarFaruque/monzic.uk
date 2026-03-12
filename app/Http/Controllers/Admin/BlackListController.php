@@ -22,6 +22,11 @@ class BlackListController extends Controller
         return mb_strtolower(trim((string) $value));
     }
 
+    private function normalizeEmail(?string $value): string
+    {
+        return preg_replace('/\s+/', '', $this->normalizeText($value));
+    }
+
     private function normalizeRegistration(?string $value): string
     {
         return preg_replace('/\s+/', '', $this->normalizeText($value));
@@ -119,7 +124,7 @@ class BlackListController extends Controller
             $matches["first_name"] = $this->normalizeText($request->first_name);
         }
         if($request->has('email') && $request->email != ""){
-            $matches["email"] = $this->normalizeText($request->email);
+            $matches["email"] = $this->normalizeEmail($request->email);
         }
         if($request->has('birth_date') && $request->birth_date != ""){
             $matches["birth_date"] = $request->birth_date;
@@ -187,7 +192,7 @@ class BlackListController extends Controller
             $matches["first_name"] = $this->normalizeText($request->first_name);
         }
         if($request->has('email') && $request->email != ""){
-            $matches["email"] = $this->normalizeText($request->email);
+            $matches["email"] = $this->normalizeEmail($request->email);
         }
         if($request->has('birth_date') && $request->birth_date != ""){
             $matches["birth_date"] = $request->birth_date;

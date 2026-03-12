@@ -7,7 +7,7 @@ use App\Mail\OrderConfirmationMail;
 use App\Models\Quote;
 use App\Models\PromoCode;
 use App\Models\Setting;
-use App\Models\BlackList;
+use App\Services\BlacklistService;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -24,20 +24,10 @@ use DataTables;
 class PolicyController extends Controller
 {
 
-    public function __construct(Request $request)
+    public function __construct(Request $request, private BlacklistService $blacklistService)
     {
     }
 
-
-    private function normalizeText(?string $value): string
-    {
-        return mb_strtolower(trim((string) $value));
-    }
-
-    private function normalizeRegistration(?string $value): string
-    {
-        return preg_replace('/\s+/', '', $this->normalizeText($value));
-    }
 
 
     public function index(Request $request)
@@ -720,88 +710,22 @@ class PolicyController extends Controller
 
     private function isBlackListed($quote)
     {
-
-        $blacklists = BlackList::get();
-        foreach ($blacklists as $blacklist) {
-
-            $hasFail = 0;
-            $hasSuccess = 0;
-
-            // Do the code matching
-            $matches = json_decode($blacklist->matches, true);
-            if (isset($matches["birth_date"])) {
-
-                // Parse start and end dates and times
-                $bthDate = $quote->date_of_birth; // Format: DD/MM/YYYY
-                list($bDay, $bMonth, $bYear) = explode('-', $bthDate);
-                $date_of_birth = date("Y-m-d", strtotime("$bYear-$bMonth-$bDay"));
-
-
-                $bdata = explode("-", $matches["birth_date"]);
-
-                $qdata = explode("-", $date_of_birth);
-
-                if ($bdata[0] != $qdata[0]) { // Match year
-                    $hasFail++;
-                } else if (isset($bdata[1]) && intval($bdata[1]) != intval($qdata[1])) { // Match month
-                    $hasFail++;
-                } else if (isset($bdata[2]) && intval($bdata[2]) != intval($qdata[2])) { // Match month
-                    $hasFail++;
-                } else {
-                    $hasSuccess++;
-                }
+        $email = $quote->email ?? null;
+        if (!$email && $quote->user_id) {
+            $user = User::find($quote->user_id);
+            if ($user) {
+                $email = $user->email;
             }
-            if (isset($matches["last_name"])) {
-                if ($this->normalizeText($matches["last_name"]) != $this->normalizeText($quote->last_name)) { // Match month
-                    $hasFail++;
-                } else {
-                    $hasSuccess++;
-                }
-            }
-            if (isset($matches["first_name"])) {
-                 if ($this->normalizeText($matches["first_name"]) != $this->normalizeText($quote->first_name)) { // Match month
-                    $hasFail++;
-                } else {
-                    $hasSuccess++;
-                }
-            }
-            if (isset($matches["email"])) {
-                if ($this->normalizeText($matches["email"]) != $this->normalizeText($quote->email)) { // Match month
-                    $hasFail++;
-                } else {
-                    $hasSuccess++;
-                }
-            }
-            if (isset($matches["registrations"])) {
-
-                $registrations = explode(",", $matches["registrations"]);
-                $regData = [];
-                foreach ($registrations as $reg) {
-                    $reg = $this->normalizeRegistration($reg);
-                    if (!empty($reg)) {
-                        $regData[] = $reg;
-                    }
-                }
-                if (count($regData) > 0 && !in_array($this->normalizeRegistration($quote->reg_number), $regData)) {
-                    $hasFail++;
-                } else {
-                    $hasSuccess++;
-                }
-            }
-            if ($hasSuccess > 0 && $hasFail == 0) {
-                return true;
-            }
-
         }
 
-        return false;
-
+        return $this->blacklistService->isBlacklisted([
+            'email' => $email,
+            'first_name' => $quote->first_name ?? null,
+            'last_name' => $quote->last_name ?? null,
+            'birth_date' => $quote->date_of_birth ?? null,
+            'reg_number' => $quote->reg_number ?? null,
+        ]);
     }
-
-
-
-
-
 
 
 
