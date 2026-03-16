@@ -126,33 +126,52 @@ class BlacklistService
         return date('Y-m-d', $timestamp);
     }
 
+
+
     private function matchesEntry(array $matches, array $payload): bool
     {
-        Log::info("matchesEntry: " . json_encode($matches));
-        Log::info("payload: " . json_encode($payload));
+        $comparedFields = 0;
 
-
-        if (isset($matches['birth_date']) && !$this->birthDateMatches($matches['birth_date'], $payload['birth_date'])) {
-            return false;
+        if (isset($matches['birth_date'])) {
+            // Login payloads may not include DOB; in that case, ignore DOB as a hard blocker
+            // and still evaluate other identifiers (email/name/registration).
+            if (!empty($payload['birth_date'])) {
+                if (!$this->birthDateMatches($matches['birth_date'], $payload['birth_date'])) {
+                    return false;
+                }
+                $comparedFields++;
+            }
         }
 
-        if (isset($matches['last_name']) && $this->normalizeText($matches['last_name']) !== $payload['last_name']) {
-            return false;
+        if (isset($matches['last_name'])) {
+            if (empty($payload['last_name']) || $this->normalizeText($matches['last_name']) !== $payload['last_name']) {
+                return false;
+            }
+            $comparedFields++;
         }
 
-        if (isset($matches['first_name']) && $this->normalizeText($matches['first_name']) !== $payload['first_name']) {
-            return false;
+        if (isset($matches['first_name'])) {
+            if (empty($payload['first_name']) || $this->normalizeText($matches['first_name']) !== $payload['first_name']) {
+                return false;
+            }
+            $comparedFields++;
         }
 
-        if (isset($matches['email']) && $this->normalizeEmail($matches['email']) !== $payload['email']) {
-            return false;
+        if (isset($matches['email'])) {
+            if (empty($payload['email']) || $this->normalizeText($matches['email']) !== $payload['email']) {
+                return false;
+            }
+            $comparedFields++;
         }
 
-        if (isset($matches['registrations']) && !$this->registrationMatches($matches['registrations'], $payload['reg_number'])) {
-            return false;
+        if (isset($matches['registrations'])) {
+            if (empty($payload['reg_number']) || !$this->registrationMatches($matches['registrations'], $payload['reg_number'])) {
+                return false;
+            }
+            $comparedFields++;
         }
 
-        return true;
+        return $comparedFields > 0;
     }
 
 

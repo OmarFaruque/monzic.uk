@@ -430,6 +430,13 @@ class SettingController extends Controller
             $paddle_apikey_live = $setn->value;
         }
 
+        $setn = Setting::where("param", "paddle_discord_webhook_url")->first();
+        if ($setn == null) {
+            $paddle_discord_webhook_url = "";
+        } else {
+            $paddle_discord_webhook_url = $setn->value;
+        }
+
         $setn = Setting::where("param", "mollie_api_key")->first();
         if ($setn == null) {
             $mollie_api_key = "";
@@ -475,6 +482,7 @@ class SettingController extends Controller
             "paddle_mode" => $paddle_mode, 
             "paddle_apikey" => $paddle_apikey, 
             "paddle_vendor_id" => $paddle_vendor_id, 
+            "paddle_discord_webhook_url" => $paddle_discord_webhook_url,
             "payment_gateway" => $payment_gateway, 
             "stripe_public" => $stripe_public, 
             "stripe_secret" => $stripe_secret, 

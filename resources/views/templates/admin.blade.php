@@ -1,3 +1,6 @@
+@php
+    $selectedPaymentGateway = \App\Models\Setting::where('param', 'payment_gateway')->value('value');
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
@@ -146,7 +149,14 @@
                                 <p> Blacklists </p>
                             </a>
                         </li>
-
+                        @if($selectedPaymentGateway === 'paddle')
+                            <li class="nav-item">
+                                <a class="nav-link" href="/admin/refund-events">
+                                    <i class="nav-icon fa fa-undo"></i>
+                                    <p> Refund Requests </p>
+                                </a>
+                            </li>
+                        @endif
                         <li class="nav-item">
                             <a class="nav-link" href="/admin/users">
                                 <i class="nav-icon fa fa-users"></i>

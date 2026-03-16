@@ -959,12 +959,6 @@ class PageController extends Controller
     }
 
 
-
-
-
-
-
-
     // Show My account  Use  page. 
     public function myAccount(Request $request)
     {

@@ -530,6 +530,13 @@
                                             <div class="row">
                                                 <div class="col-md-12"> <p><small><i>Webhook: {{route('paddle.webhook')}}</i></small></p> </div>
                                             </div>
+
+                                            <div class="row">
+                                                <div class="form-group col-md-12">
+                                                    <label for="paddle_discord_webhook_url">Discord Webhook URL (Refund / Chargeback Alerts)</label>
+                                                    <input type="text" value="{{ old('paddle_discord_webhook_url', $paddle_discord_webhook_url) }}" placeholder="https://discord.com/api/webhooks/..." name="paddle_discord_webhook_url" id="paddle_discord_webhook_url" class="form-control">
+                                                </div>
+                                            </div>
                                             
                                             <div class="my-3"><button class="btn btn-success"><i class="fa fa-save"></i>
                                                     UPDATE</button></div>

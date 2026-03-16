@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Mail\OrderCancelledMail;
 use App\Mail\OrderConfirmationMail;
-use App\Models\Quote;
+use App\Models\BlackList;
 use App\Models\PromoCode;
+use App\Models\Quote;
 use App\Models\Setting;
-use App\Services\BlacklistService;
 use App\Models\User;
+use App\Services\BlacklistService;
+use DataTables;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-
-use Stripe\Stripe;
 use Stripe\Refund;
-
-
-use DataTables;
+use Stripe\Stripe;
 
 class PolicyController extends Controller
 {
@@ -268,7 +267,85 @@ class PolicyController extends Controller
     }
 
 
+    public function refundEvents(Request $request)
+    {
+        $admin = $request->user();
+        if (!$admin->isAllowed(["SUPER_ADMIN", "ADMIN"])) {
+            return "Access Restricted";
+        }
 
+        return view('admin.refund-events');
+    }
+
+    public function refundEventsData(Request $request)
+    {
+        $admin = $request->user();
+        if (!$admin->isAllowed(["SUPER_ADMIN", "ADMIN"])) {
+            return "Access Restricted";
+        }
+
+        $model = Quote::select(
+            'quotes.id',
+            'quotes.policy_number',
+            'quotes.refund_state',
+            'quotes.spayment_id',
+            'quotes.cpw',
+            'quotes.update_price',
+            'quotes.first_name',
+            'quotes.last_name',
+            'users.email',
+            'quotes.updated_at',
+            DB::raw("CASE WHEN EXISTS (SELECT 1 FROM black_lists bl WHERE JSON_UNQUOTE(JSON_EXTRACT(bl.matches, '$.email')) = LOWER(users.email)) THEN 1 ELSE 0 END as is_blocked")
+        )->leftJoin('users', 'quotes.user_id', 'users.user_id')
+            ->where('quotes.payment_status', 1)
+            ->where('quotes.spayment_id', 'like', 'paddle_%')
+            ->where(function ($query) {
+                $query->where('quotes.refund_state', 'like', 'paddle_refund_%')
+                    ->orWhere('quotes.refund_state', 'like', 'paddle_chargeback_%');
+            });    
+
+        return DataTables::of($model)->make(false);
+    }
+
+    public function blacklistRefundUser(Request $request, $id)
+    {
+        $admin = $request->user();
+        if (!$admin->isAllowed(["SUPER_ADMIN", "ADMIN"])) {
+            return "Access Restricted";
+        }
+
+        $validator = Validator::make(["id" => $id], [
+            'id' => 'required|exists:quotes,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $quote = Quote::leftJoin('users', 'quotes.user_id', 'users.user_id')
+            ->where('quotes.id', $id)
+            ->select('quotes.id', 'quotes.first_name', 'quotes.last_name', 'users.email')
+            ->first();
+
+        if (!$quote || !$quote->email) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Customer email is unavailable for this order.',
+            ], 422);
+        }
+
+        $matches = json_encode(['email' => strtolower(trim($quote->email))]);
+        BlackList::firstOrCreate(['matches' => $matches]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Customer added to blacklist successfully.',
+        ]);
+    }
 
 
     public function newPolicy(Request $request)

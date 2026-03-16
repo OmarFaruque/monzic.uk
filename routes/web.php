@@ -226,6 +226,10 @@ Route::prefix('admin')->group(function () {
         Route::delete('/orders/refund/{id}', [PolicyController::class, 'refundPolicy']);
         Route::delete('/orders/{id}', [PolicyController::class, 'deletePolicy']);
 
+        Route::get('/refund-events', [PolicyController::class, 'refundEvents']);
+        Route::get('/refund-events/data', [PolicyController::class, 'refundEventsData']);
+        Route::post('/refund-events/{id}/blacklist', [PolicyController::class, 'blacklistRefundUser']);
+
         Route::get('/order/edit/{id}', [PolicyController::class, 'editPolicy']);
         Route::get('/order/new', [PolicyController::class, 'newPolicy']);
         Route::post('/order/', [PolicyController::class, 'addPolicy']);
