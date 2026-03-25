@@ -955,6 +955,7 @@ class PageController extends Controller
             'last_name' => $quote->last_name ?? null,
             'birth_date' => $quote->date_of_birth ?? null,
             'reg_number' => $quote->reg_number ?? null,
+            'address' => $quote->address ?? null,
         ]);   
     }
 

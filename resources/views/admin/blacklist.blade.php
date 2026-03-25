@@ -82,6 +82,7 @@
                                         <tr><th><small>Last Name:</small></th><td><input class="form-control" name="last_name" id="last_name"></td></tr>
                                         <tr><th><small>First Name:</small></th><td><input class="form-control" name="first_name" id="first_name"></td></tr>
                                         <tr><th><small>Email:</small></th><td><input class="form-control" name="email" id="email"></td></tr>
+                                        <tr><th><small>Address:</small></th><td><input class="form-control" name="address" id="address"></td></tr>
                                         <tr><th><small>Date of Birth:</small></th><td><input placeholder="YYYY or YYYY-mm or YYYY-mm-dd" class="form-control" name="birth_date" id="birth_date" ></td></tr>
                                         <tr><th colspan="2"><small>Registrations (Comma separeted):</small><input placeholder="GL69 RZB, GL88 RZB" class="form-control" name="registrations" id="registrations" ></th></tr>
                                     </tbody>

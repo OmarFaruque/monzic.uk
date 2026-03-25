@@ -32,6 +32,11 @@ class BlackListController extends Controller
         return preg_replace('/\s+/', '', $this->normalizeText($value));
     }
 
+    private function normalizeAddress(?string $value): string
+    {
+        return preg_replace('/\s+/', ' ', $this->normalizeText($value));
+    }
+
     private function normalizeRegistrations(string $registrations): string
     {
         $normalized = [];
@@ -96,6 +101,7 @@ class BlackListController extends Controller
             'last_name' => 'nullable|string',
             'first_name' => 'nullable|string',
             'email' => 'nullable|email',
+            'address' => 'nullable|string',
             'registrations' => 'nullable|string',
             'birth_date' => [
                 'nullable',
@@ -125,6 +131,9 @@ class BlackListController extends Controller
         }
         if($request->has('email') && $request->email != ""){
             $matches["email"] = $this->normalizeEmail($request->email);
+        }
+        if($request->has('address') && $request->address != ""){
+            $matches["address"] = $this->normalizeAddress($request->address);
         }
         if($request->has('birth_date') && $request->birth_date != ""){
             $matches["birth_date"] = $request->birth_date;
@@ -164,6 +173,7 @@ class BlackListController extends Controller
             'last_name' => 'nullable|string',
             'first_name' => 'nullable|string',
             'email' => 'nullable|email',
+            'address' => 'nullable|string',
             'registrations' => 'nullable|string',
             'birth_date' => [
                 'nullable',
@@ -193,6 +203,9 @@ class BlackListController extends Controller
         }
         if($request->has('email') && $request->email != ""){
             $matches["email"] = $this->normalizeEmail($request->email);
+        }
+        if($request->has('address') && $request->address != ""){
+            $matches["address"] = $this->normalizeAddress($request->address);
         }
         if($request->has('birth_date') && $request->birth_date != ""){
             $matches["birth_date"] = $request->birth_date;

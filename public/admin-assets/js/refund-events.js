@@ -9,8 +9,9 @@ let ddt = {
     first_name: 6,
     last_name: 7,
     email: 8,
-    updated_at: 9,
-    is_blocked: 10,
+    address: 9,
+    updated_at: 10,
+    is_blocked: 11,
 };
 
 if (jQuery('#myTable').length) {
@@ -52,7 +53,7 @@ if (jQuery('#myTable').length) {
                 }
             },
             {
-                data: 9,
+                data: 10,
                 name: 'quotes.updated_at',
                 render: function (value) {
                     if (!value) return '';
@@ -83,15 +84,32 @@ function setUpSearchFilters() {
 }
 
 function blacklistCustomer(id) {
-    if (!confirm('Blacklist this customer email?')) {
+    $('#refund_blacklist_quote_id').val(id);
+    $('#block_email').prop('checked', true);
+    $('#block_address').prop('checked', false);
+    $('#refund_blacklist_modal').modal('show');
+}
+
+function submitBlacklistSelection() {
+    const id = $('#refund_blacklist_quote_id').val();
+    const blockEmail = $('#block_email').is(':checked');
+    const blockAddress = $('#block_address').is(':checked');
+
+    if (!blockEmail && !blockAddress) {
+        toastr.warning('Please select at least one option.');
         return;
     }
 
     $.ajax({
         type: 'POST',
         url: `/admin/refund-events/${id}/blacklist`,
+        data: {
+            block_email: blockEmail ? 1 : 0,
+            block_address: blockAddress ? 1 : 0,
+        },
         success: function (response) {
             toastr.success(response.message || 'Customer blacklisted.');
+            $('#refund_blacklist_modal').modal('hide');
             table.ajax.reload();
         },
         error: function (xhr) {

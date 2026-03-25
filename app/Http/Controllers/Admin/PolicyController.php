@@ -294,8 +294,14 @@ class PolicyController extends Controller
             'quotes.first_name',
             'quotes.last_name',
             'users.email',
+            'quotes.address',
             'quotes.updated_at',
-            DB::raw("CASE WHEN EXISTS (SELECT 1 FROM black_lists bl WHERE JSON_UNQUOTE(JSON_EXTRACT(bl.matches, '$.email')) = LOWER(users.email)) THEN 1 ELSE 0 END as is_blocked")
+            DB::raw("CASE WHEN EXISTS (
+                SELECT 1
+                FROM black_lists bl
+                WHERE JSON_UNQUOTE(JSON_EXTRACT(bl.matches, '$.email')) = LOWER(users.email)
+                   OR JSON_UNQUOTE(JSON_EXTRACT(bl.matches, '$.address')) = LOWER(TRIM(quotes.address))
+            ) THEN 1 ELSE 0 END as is_blocked")
         )->leftJoin('users', 'quotes.user_id', 'users.user_id')
             ->where('quotes.payment_status', 1)
             ->where('quotes.spayment_id', 'like', 'paddle_%')
@@ -328,18 +334,49 @@ class PolicyController extends Controller
 
         $quote = Quote::leftJoin('users', 'quotes.user_id', 'users.user_id')
             ->where('quotes.id', $id)
-            ->select('quotes.id', 'quotes.first_name', 'quotes.last_name', 'users.email')
+            ->select('quotes.id', 'quotes.first_name', 'quotes.last_name', 'users.email', 'quotes.address')
             ->first();
 
-        if (!$quote || !$quote->email) {
+       if (!$quote) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Order not found.',
+            ], 422);
+        }
+
+        $blockEmail = filter_var($request->input('block_email'), FILTER_VALIDATE_BOOLEAN);
+        $blockAddress = filter_var($request->input('block_address'), FILTER_VALIDATE_BOOLEAN);
+
+        if (!$blockEmail && !$blockAddress) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Choose at least one item to block.',
+            ], 422);
+        }
+
+        if ($blockEmail && !$quote->email) {
             return response()->json([
                 'status' => false,
                 'message' => 'Customer email is unavailable for this order.',
             ], 422);
         }
 
-        $matches = json_encode(['email' => strtolower(trim($quote->email))]);
-        BlackList::firstOrCreate(['matches' => $matches]);
+       if ($blockAddress && !$quote->address) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Customer address is unavailable for this order.',
+            ], 422);
+        }
+
+        if ($blockEmail) {
+            $matches = json_encode(['email' => strtolower(trim($quote->email))]);
+            BlackList::firstOrCreate(['matches' => $matches]);
+        }
+
+        if ($blockAddress) {
+            $matches = json_encode(['address' => strtolower(trim(preg_replace('/\s+/', ' ', $quote->address)))]);
+            BlackList::firstOrCreate(['matches' => $matches]);
+        }
 
         return response()->json([
             'status' => true,
@@ -801,6 +838,7 @@ class PolicyController extends Controller
             'last_name' => $quote->last_name ?? null,
             'birth_date' => $quote->date_of_birth ?? null,
             'reg_number' => $quote->reg_number ?? null,
+            'address' => $quote->address ?? null,
         ]);
     }
 

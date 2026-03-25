@@ -42,6 +42,32 @@
             </div>
         </div>
     </section>
+    <div class="modal" id="refund_blacklist_modal" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog" style="max-width: 500px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Blacklist customer</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">Choose what you want to block:</p>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="block_email" checked>
+                        <label class="form-check-label" for="block_email">Email</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="block_address">
+                        <label class="form-check-label" for="block_address">Address</label>
+                    </div>
+                    <input type="hidden" id="refund_blacklist_quote_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="submitBlacklistSelection()">Block</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('js')

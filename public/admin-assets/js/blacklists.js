@@ -92,6 +92,9 @@ function edit_row(event){
 	if('email' in matches){
 		$("#email").val(matches.email);
 	}
+	if('address' in matches){
+		$("#address").val(matches.address);
+	}
 	if('birth_date' in matches){
 		$("#birth_date").val(matches.birth_date);
 	}

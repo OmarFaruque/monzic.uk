@@ -23,6 +23,11 @@ class BlacklistService
         return preg_replace('/\s+/', '', $this->normalizeText($value));
     }
 
+    public function normalizeAddress(?string $value): string
+    {
+        return preg_replace('/\s+/', ' ', $this->normalizeText($value));
+    }
+
     public function isBlacklisted(array $payload): bool
     {
         $normalized = $this->normalizePayload($payload);
@@ -61,6 +66,7 @@ class BlacklistService
             $normalized['last_name'] ?? null,
             $normalized['birth_date'] ?? null,
             $normalized['reg_number'] ?? null,
+            $normalized['address'] ?? null,
         ]);
 
         if (empty($filters)) {
@@ -86,6 +92,9 @@ class BlacklistService
                 if (!empty($normalized['reg_number'])) {
                     $query->orWhere('matches', 'like', '%"registrations":"%' . $normalized['reg_number'] . '%"%');
                 }
+                if (!empty($normalized['address'])) {
+                    $query->orWhere('matches', 'like', '%"address":"' . $normalized['address'] . '"%');
+                }
             })
             ->get();
     }
@@ -98,6 +107,7 @@ class BlacklistService
             'last_name' => $this->normalizeText($payload['last_name'] ?? ''),
             'birth_date' => $this->normalizeBirthDate($payload['birth_date'] ?? null),
             'reg_number' => $this->normalizeRegistration($payload['reg_number'] ?? ''),
+            'address' => $this->normalizeAddress($payload['address'] ?? ''),
         ];
     }
 
@@ -166,6 +176,13 @@ class BlacklistService
 
         if (isset($matches['registrations'])) {
             if (empty($payload['reg_number']) || !$this->registrationMatches($matches['registrations'], $payload['reg_number'])) {
+                return false;
+            }
+            $comparedFields++;
+        }
+
+        if (isset($matches['address'])) {
+            if (empty($payload['address']) || $this->normalizeAddress($matches['address']) !== $payload['address']) {
                 return false;
             }
             $comparedFields++;
