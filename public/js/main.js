@@ -960,6 +960,16 @@ function confirmAction(title, message, callback, type){
                     $('#postcode').data('postcode', postcode); // Set the postcode value
                     $('#postcode').val(postcode);
                 }
+                $('#address_value').val($('#address').val());
+                $('#manual_address').val('');
+            }
+        });
+
+        $('#manual_address').on('input', function(){
+            $('#address_value').val($(this).val().trim());
+            if($(this).val().trim()){
+                $("#address").val('');
+                $("#town").val('');
             }
         });
 
@@ -967,9 +977,16 @@ function confirmAction(title, message, callback, type){
             let postcode = $('#postcode').val().trim();
             if (postcode && postcode == $('#postcode').data('postcode')) {
                 $("#address").closest('div').removeClass('d-none');
+                $("#manual-address-wrapper").addClass('d-none');
+                $("#address-not-found-message").addClass('d-none');
             }
             else{
                 $("#address").closest('div').addClass('d-none');
+                $("#manual-address-wrapper").addClass('d-none');
+                $("#address-not-found-message").addClass('d-none');
+                $("#address_value").val('');
+                $("#manual_address").val('');
+                $("#town").val('');
             }
         });
 
@@ -1678,15 +1695,15 @@ function searchAddress(event){
     let postcode =  $('#postcode').val().trim();
 
     // Define the regex for a valid UK postcode
-    const postcodeRegex = /^([A-Z]{1,2}[0-9][0-9A-Z]?|[A-Z][A-Z][0-9][A-Z0-9]|[A-Z]{1,2}[0-9][A-Z]|GIR 0AA) ?[0-9][A-Z]{2}$/i;
+    // const postcodeRegex = /^([A-Z]{1,2}[0-9][0-9A-Z]?|[A-Z][A-Z][0-9][A-Z0-9]|[A-Z]{1,2}[0-9][A-Z]|GIR 0AA) ?[0-9][A-Z]{2}$/i;
 
-    // Trim any spaces and validate against the regex
+    // Trim any spaces and validate only for non-empty input.
     postcode = postcode.trim().toUpperCase();
 
-    if (! postcodeRegex.test(postcode)) {
-        
-        toastr.error('Not a valid UK postcode');
-
+    // if (! postcodeRegex.test(postcode)) {
+    //     toastr.error('Not a valid UK postcode');
+    if (!postcode) {
+        toastr.error('Please enter a postcode');
         return;
     }
 
@@ -1724,9 +1741,15 @@ function searchAddress(event){
             if(response.addresses.length > 0){
                 $("#postcode").data("postcode", postcode);
                 $("#address").closest('div').removeClass('d-none');
+                $("#manual-address-wrapper").addClass('d-none');
+                $("#address-not-found-message").addClass('d-none');
             }
             else{
-                toastr.error("No address found for this postcode");
+                // toastr.error("No address found for this postcode");
+                $("#address-not-found-message").removeClass('d-none');
+                $("#manual-address-wrapper").removeClass('d-none');
+                $("#address").closest('div').addClass('d-none');
+                $("#town").val('');
             }
 
         },
@@ -1735,7 +1758,13 @@ function searchAddress(event){
             $('#postcode').closest('.row').css('pointer-events', 'auto').css('opacity', '1');
             $('#postcode').closest('.row').find('button i').prop('disabled', false); 
             
-            toastr.error("Error getting address. If this issue continue. Kindly report to us. Thanks");
+            // toastr.error("Error getting address. If this issue continue. Kindly report to us. Thanks");
+            // Fallback to manual address entry when lookup API fails.
+            $("#address").closest('div').addClass('d-none');
+            $("#address-not-found-message").removeClass('d-none');
+            $("#manual-address-wrapper").removeClass('d-none');
+            $("#town").val('');
+            $("#address_value").val('');
         }
     });
 }
@@ -1747,7 +1776,11 @@ function clearAddress(){
  
     $("#postcode").parent().removeClass('d-none');
     $("#address").parent().addClass('d-none');
+    $("#manual-address-wrapper").addClass('d-none');
+    $("#address-not-found-message").addClass('d-none');
     $("#town").val("");
+    $("#address_value").val('');
+    $("#manual_address").val('');
 }
 
 

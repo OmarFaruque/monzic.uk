@@ -733,10 +733,19 @@
 
                             <div class="qfgroup d-none">
                                 <label>Address</label> <abbr title="Required">*</abbr>
-                                <select onchange="setAddressTown()" autocomplete="off" id="address" name="address"
-                                    class="validate-requinred">
-                                </select>
+                                <select onchange="setAddressTown()" autocomplete="off" id="address" class="validate-requinred"></select>
                                 <input name="town" id="town" type="hidden">
+                                <input name="address" id="address_value" type="hidden">
+                            </div>
+
+                            <div id="address-not-found-message" class="form_error d-none" style="margin-top: -15px; margin-bottom: 15px;">
+                                Address not found. Please enter your address manually below.
+                            </div>
+
+                            <div id="manual-address-wrapper" class="qfgroup d-none">
+                                <label>Enter Address</label> <abbr title="Required">*</abbr>
+                                <input type="text" autocomplete="off" id="manual_address"
+                                    placeholder="Enter your full address">
                             </div>
 
 
