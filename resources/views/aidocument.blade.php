@@ -52,6 +52,38 @@
             background-color: rgba(0, 0, 0, 0.1);
             border-radius: 5px;
         }
+        .ai-mode-tabs {
+            display: inline-flex;
+            background: linear-gradient(135deg, #f1f7f8 0%, #e6f3f5 100%);
+            border: 1px solid #d7ebee;
+            border-radius: 999px;
+            padding: 6px;
+            box-shadow: 0 8px 20px rgba(64, 163, 186, 0.12);
+        }
+
+        .ai-mode-tab-btn {
+            border: none;
+            background: transparent;
+            color: #3d5f66;
+            font-weight: 600;
+            border-radius: 999px !important;
+            padding: 10px 22px;
+            transition: all .2s ease;
+        }
+
+        .ai-mode-tab-btn.active {
+            background: var(--gtheme-color);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(64, 163, 186, 0.35);
+        }
+
+        .ai-mode-tab-btn:hover {
+            color: var(--gtheme-color);
+        }
+
+        .ai-mode-tab-btn.active:hover {
+            color: #fff;
+        }
     </style>
 @endpush
 
@@ -72,13 +104,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
                         </svg>
-                        AI-Powered Document Generation</span>
-                    <h1 class="fw-bold">Transform Ideas into <br /><span class=""
-                            style="color:var(--gtheme-color)">Professional Documents</span></h1>
-                    <p class="text-muted fs-5" style="max-width:700px; margin:0 auto;">
-                        Our advanced AI technology creates high-quality, personalized documents in seconds. From business
-                        proposals to technical specifications, get professionally formatted content instantly.
-                    </p>
+                        AI-Powered Document & Image Generation</span>
+                    <h1 class="fw-bold">Transform Ideas into <br /><span class="" style="color:var(--gtheme-color)">Documents & Images</span></h1>
+                    <p class="text-muted fs-5" style="max-width:700px; margin:0 auto;"> Our advanced AI technology creates high-quality, personalized documents and images in seconds. Build long-form content or generate custom visuals with optional reference images.</p>
                     <div class="d-flex justify-content-center gap-3 mt-3">
                         <span class="text-success"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -169,9 +197,26 @@
                     </div>
                 </div>
 
-                <!-- Generate Document Section -->
-                <div class="card shadow-sm mb-4" x-data='aiDocumentCallback(@json(Auth::check()), @json(Auth::user()?->email))'>
 
+
+            <div class="tabwrap"  x-data='aiDocumentCallback(@json(Auth::check()), @json(Auth::user()?->email))'>
+
+
+                <div class="text-center mb-3">
+                        <div class="ai-mode-tabs">
+                            <button type="button" class="ai-mode-tab-btn"
+                                :class="{ 'active': activeTab === 'document' }"
+                                @click="switchTab('document')">Document Generate</button>
+                            <button type="button" class="ai-mode-tab-btn"
+                                :class="{ 'active': activeTab === 'image' }"
+                                @click="switchTab('image')">Image Generate</button>
+                        </div>
+                    </div>
+                
+
+
+                <!-- Generate Document Section -->
+                <div class="card shadow-sm mb-4">
 
                     <div :class="loading ? 'd-flex' : 'd-none'"
                         class="loader-overlay d-flex justify-content-center align-items-center" x-show="loading" x-cloak
@@ -185,9 +230,7 @@
                         </div>
                     </div>
 
-
-
-                    <template x-if="!generatedDoc">
+                    <template x-if="activeTab === 'document' && !generatedDoc">
                         <div>
                             <div class="card-header text-white fw-semibold" style="background-color:var(--gtheme-color)">
                                 <h3><strong>Generate Your Document</strong></h3>
@@ -241,7 +284,7 @@
                         </div>
                     </template>
 
-                    <template x-if="generatedDoc">
+                    <template x-if="activeTab === 'document' && generatedDoc">
                         <div>
                             <div
                                 class="card-header text-white fw-semibold d-flex justify-content-between align-items-center" style="background-color:var(--gtheme-color);">
@@ -323,6 +366,89 @@
                             <div class="card-body">
                                 <div class="p-3">
                                     <div x-html="generatedDoc" class="generated-doc-content"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="activeTab === 'image' && !generatedImageUrl">
+                        <div>
+                            <div class="card-header text-white fw-semibold" style="background-color:var(--gtheme-color)">
+                                <h3><strong>Generate Your Image</strong></h3>
+                                <p>Upload optional reference images and describe what to create.</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="imagePrompt" class="form-label fw-semibold">Image prompt</label>
+                                    <textarea class="form-control" id="imagePrompt" x-model="imagePrompt"
+                                        placeholder="e.g., Create a cinematic ad poster for an electric car in rainy neon city lights."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="imageRefs" class="form-label fw-semibold">Reference images
+                                        (optional, multiple)</label>
+                                    <input type="file" id="imageRefs" class="form-control" multiple accept="image/*"
+                                        @change="setImageFiles($event)">
+                                    <small class="text-muted">You can upload multiple photos like ChatGPT image edit
+                                        workflow.</small>
+                                </div>
+
+                                <div class="mb-4">
+                                    <h6 class="fw-semibold mb-2">Quick Image Prompts</h6>
+                                    <div class="list-group">
+                                        <button @click="imagePrompt='Create a studio-quality product photo of a luxury wristwatch on black reflective glass, dramatic soft lighting'"
+                                            class="list-group-item list-group-item-action my-2">⌚ Luxury product shot
+                                            with dramatic lighting</button>
+                                        <button @click="imagePrompt='Design a modern website hero illustration with abstract shapes in teal and white, clean SaaS style'"
+                                            class="list-group-item list-group-item-action my-2">🖥️ SaaS hero
+                                            illustration in teal theme</button>
+                                        <button @click="imagePrompt='Transform uploaded reference photos into a cohesive social media campaign banner with bold typography space'"
+                                            class="list-group-item list-group-item-action my-2">📣 Transform uploaded
+                                            references into campaign banner</button>
+                                    </div>
+                                </div>
+
+                                <div class="text-center">
+                                    <button @click="isAuth ? generateImage() : showLoginModal()"
+                                        style="background-color:var(--gtheme-color); border-width:0; color:white;"
+                                        :class="{ 'opacity-50 cursor-not-allowed': !imagePrompt.trim() }"
+                                        :disabled="!imagePrompt.trim()" class="btn btn-default btn-lg px-5">🎨 Generate
+                                        Image</button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="activeTab === 'image' && generatedImageUrl">
+                        <div>
+                            <div class="card-header text-white fw-semibold d-flex justify-content-between align-items-center"
+                                style="background-color:var(--gtheme-color);">
+                                <div class="text-white px-4 px-sm-5 py-4 d-flex justify-content-between w-100 flex-column gap-3 flex-sm-row align-items-sm-center justify-content-sm-between">
+                                    <div>
+                                        <h3 class="text-lg sm:text-xl font-bold text-white mb-0">Your Image is Ready!</h3>
+                                        <p class="text-emerald-100 text-sm sm:text-base mb-0">Preview is available now. Download
+                                            unlocks after payment.</p>
+                                    </div>
+                                    <div class="d-grid flex-column gap-2 flex-sm-row ai-button-group"
+                                        style="gap:20px; grid-template-columns: repeat(2, 1fr);">
+                                        <button @click="editImageRequest()" style="border-color:transparent;"
+                                            class="w-100 d-flex align-items-center justify-content-center gap-2 flex-wrap rounded border-0 px-4 py-2 bg-white text-teal fw-semibold text-sm">
+                                            <span>Edit Request</span>
+                                        </button>
+                                        <button style="border-color:transparent; color:var(--gtheme-color);" @click="goToCheckout()"
+                                            class="w-100 d-flex align-items-center justify-content-center gap-2 text-nowrap rounded px-4 py-2 bg-white fw-semibold fs-6 h-auto user-select-none border-0">
+                                            <span x-text="'Pay & Download Image - £' + (parseFloat({{ $ai_document_price }}) + parseFloat(tipAmount)).toFixed(2)"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="p-3 text-center">
+                                    <img :src="generatedImageUrl" alt="Generated AI image"
+                                        class="img-fluid rounded border shadow-sm" style="max-height: 580px;">
+                                </div>
+                                <div class="text-center pb-3">
+                                    <a :href="downloadImageUrl" class="btn btn-success">⬇ Download Image (Paid users only)</a>
                                 </div>
                             </div>
                         </div>
@@ -432,6 +558,7 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
         </section>
     </div>
@@ -474,9 +601,16 @@
         window.aiDocumentCallback = function(isAuthenticated, userEmail) {
             return {
                 isAuth: isAuthenticated,
+                activeTab: 'document',
                 docPrompt: '',
+                imagePrompt: '',
+                imageFiles: [],
                 loading: false,
                 generatedDoc: '',
+                generatedImageUrl: '',
+                downloadImageUrl: '',
+                outputType: 'document',
+                isPaidForCurrentOutput: false,
                 username:'', 
                 password:'', 
                 rememberme:false,
@@ -521,6 +655,12 @@
                 async showLoginModal(){
                     const modal = new bootstrap.Modal(document.getElementById('authModal'));
                     modal.show();
+                },
+                switchTab(tab) {
+                    this.activeTab = tab;
+                },
+                setImageFiles(event) {
+                    this.imageFiles = Array.from(event.target.files || []);
                 },
                 async loginForm(event){
                     event.preventDefault();
@@ -576,6 +716,16 @@
                 },
                 async editRequest() {
                     this.generatedDoc = '';
+                    this.uuid = '';
+                    this.outputType = 'document';
+                    this.isPaidForCurrentOutput = false;
+                },
+                async editImageRequest() {
+                    this.generatedImageUrl = '';
+                    this.downloadImageUrl = '';
+                    this.uuid = '';
+                    this.outputType = 'image';
+                    this.isPaidForCurrentOutput = false;
                 },
                 async generateDocument() {
                     if (!this.docPrompt.trim()) return;
@@ -600,9 +750,48 @@
                         const data = await response.json();
                         this.generatedDoc = data?.content || '⚠️ No response';
                         this.uuid = data?.uuid || 'No Response';
+                        this.outputType = 'document';
+                        this.isPaidForCurrentOutput = false;
                     } catch (error) {
                         console.error(error);
                         this.generatedDoc = '❌ Error generating document.';
+                    }
+
+                    this.loading = false;
+                },
+                async generateImage() {
+                    if (!this.imagePrompt.trim()) return;
+
+                    this.loading = true;
+                    this.generatedImageUrl = '';
+                    this.downloadImageUrl = '';
+                    this.isPaidForCurrentOutput = false;
+
+                    try {
+                        const formData = new FormData();
+                        formData.append('prompt', this.imagePrompt);
+                        this.imageFiles.forEach(file => formData.append('images[]', file));
+
+                        const response = await fetch('/generate-ai-image', {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: formData
+                        });
+
+                        const data = await response.json();
+                        if (!response.ok) {
+                            throw new Error(data?.error || 'Image generation failed.');
+                        }
+
+                        this.generatedImageUrl = data?.preview_url || '';
+                        this.uuid = data?.uuid || '';
+                        this.outputType = 'image';
+                        this.downloadImageUrl = this.uuid ? `/ai-image/${this.uuid}/download` : '';
+                    } catch (error) {
+                        toastr.error(error.message || 'Error generating image.');
                     }
 
                     this.loading = false;

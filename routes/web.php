@@ -110,6 +110,7 @@ Route::get('/ai-document', [PageController::class, 'aiDocumentShow'])->name('aid
 
 // Route::post('/generate-ai-document', [AiDocumentController::class, 'generateDocument']);
 Route::middleware(['web'])->post('/generate-ai-document', [AiDocumentController::class, 'generateDocument']);
+Route::middleware(['auth'])->post('/generate-ai-image', [AiDocumentController::class, 'generateImage'])->name('generate.ai.image');
 Route::get('/paddle/payment-success', [AiDocumentController::class, 'paddlePaymentSuccess'])->name('paddle.success');
 Route::get('/paddle/download-document', [AiDocumentController::class, 'aiDocumentDownload'])->name('download.document');
 Route::post('/pp/paddle/token', [AiDocumentController::class, 'getTokenWithCreatePriceId']);
@@ -123,6 +124,8 @@ Route::post('/generate-ai-document/paddle-webhook', [PaddleController::class, 'p
 // ==========  ROUTE ONLY AVAILABLE TO LOGIN USERS   ============
 Route::middleware(['auth'])->group(function () {
     Route::get('/generate-pay-link', [AiDocumentController::class, 'processAIPayments']);
+    Route::get('/ai-image/{uuid}/preview', [AiDocumentController::class, 'previewImage'])->name('ai.image.preview');
+    Route::get('/ai-image/{uuid}/download', [AiDocumentController::class, 'downloadImage'])->name('ai.image.download');
     
     Route::get('/my-account/orders', [UserController::class, 'orders']);
     

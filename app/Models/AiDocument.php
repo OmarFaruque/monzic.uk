@@ -15,10 +15,12 @@ class AiDocument extends Model
         'prompt',
         'content',
         'pdf_path',
+        'image_path',
         'amount',
         'currency',
         'uuid',
-        'status'
+        'status',
+        'output_type',
     ];
 
     protected $casts = [

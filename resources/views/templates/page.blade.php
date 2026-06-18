@@ -312,7 +312,7 @@
                     <div class="main-menu-row">
                         <ul id="menu-header-menu" class="slimmenu">
                             <li id="menu-item-2159" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2159"><a href="/contact">Contact</a></li>
-                            <li id="menu-item-2159" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2159"><a href="{{ route('aidocument.show') }}">AI Documents</a></li>
+                            <li id="menu-item-2159" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2159"><a href="{{ route('aidocument.show') }}">AI</a></li>
 
                                     
                             <li id="menu-item-2267"
